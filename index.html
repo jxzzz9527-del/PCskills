@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電腦基本功 - 信元老師電腦教學網</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', '微軟正黑體', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #2a2a2a;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .games-grid .game-card:nth-child(n+9) {
+            grid-column: span 2;
+        }
+
+        .game-card {
+            background: #fafafa;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .game-card:hover {
+            transform: translateY(-2px);
+            border-color: #4a90e2;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+            background: #ffffff;
+        }
+
+        .game-card:active {
+            transform: translateY(0);
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            display: block;
+            transition: transform 0.2s ease;
+        }
+
+        .game-card:hover .game-icon {
+            transform: scale(1.05);
+        }
+
+        .game-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2a2a2a;
+        }
+
+        .game-description {
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* 開發者資訊 */
+        .developer-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f5f5f5;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            z-index: 1000;
+            transition: all 0.2s ease;
+        }
+
+        .developer-info:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-color: #4a90e2;
+            background: #ffffff;
+        }
+
+        .developer-info .name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #2a2a2a;
+        }
+
+        .developer-info .email {
+            font-size: 0.9em;
+            color: #555;
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .games-grid .game-card:nth-child(n+9) {
+                grid-column: span 1;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .developer-info {
+                bottom: 10px;
+                right: 10px;
+                padding: 10px 14px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>電腦基本功</h1>
+            <p>選擇一個遊戲開始練習吧！</p>
+        </div>
+
+        <div class="games-grid">
+            <!-- 第一排：接水果、搬米、打殭屍、躲避球 -->
+            <a href="/share/games/mouse_move.html" class="game-card">
+                <span class="game-icon">🍎</span>
+                <div class="game-title">接水果遊戲</div>
+                <div class="game-description">使用滑鼠移動籃子接住水果</div>
+            </a>
+
+            <a href="/share/games/mouse_drag.html" class="game-card">
+                <span class="game-icon">🛒</span>
+                <div class="game-title">搬米遊戲</div>
+                <div class="game-description">拖曳米袋到正確位置</div>
+            </a>
+
+            <a href="/share/games/mouse_click.html" class="game-card">
+                <span class="game-icon">🧟</span>
+                <div class="game-title">打殭屍遊戲</div>
+                <div class="game-description">使用滑鼠點擊消滅殭屍</div>
+            </a>
+
+            <a href="/share/games/mouse_wheel.html" class="game-card">
+                <span class="game-icon">⚽</span>
+                <div class="game-title">躲避球遊戲</div>
+                <div class="game-description">使用滾輪控制火柴人躲避球</div>
+            </a>
+
+            <!-- 第二排：鍵盤打字左、中、右、全 -->
+            <a href="/share/games/bopomofo_typing_left.html" class="game-card">
+                <span class="game-icon">⌨️</span>
+                <div class="game-title">注音打字 - 左區</div>
+                <div class="game-description">練習左區注音符號打字</div>
+            </a>
+
+            <a href="/share/games/bopomofo_typing_middle.html" class="game-card">
+                <span class="game-icon">⌨️</span>
+                <div class="game-title">注音打字 - 中區</div>
+                <div class="game-description">練習中區注音符號打字</div>
+            </a>
+
+            <a href="/share/games/bopomofo_typing_right.html" class="game-card">
+                <span class="game-icon">⌨️</span>
+                <div class="game-title">注音打字 - 右區</div>
+                <div class="game-description">練習右區注音符號打字</div>
+            </a>
+
+            <a href="/share/games/bopomofo_typing.html" class="game-card">
+                <span class="game-icon">⌨️</span>
+                <div class="game-title">注音打字練習</div>
+                <div class="game-description">完整注音符號打字練習</div>
+            </a>
+
+            <!-- 第三排：打字英雄、複製貼上 -->
+            <a href="/share/games/typing_hero.html" class="game-card">
+                <span class="game-icon">🎮</span>
+                <div class="game-title">打字英雄</div>
+                <div class="game-description">挑戰打字速度與準確度</div>
+            </a>
+
+            <a href="/share/games/copy_paste_hero.html" class="game-card">
+                <span class="game-icon">📋</span>
+                <div class="game-title">複製&貼上</div>
+                <div class="game-description">練習複製貼上操作技巧</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- 開發者資訊 -->
+    <div class="developer-info">
+        <div class="name">信元老師</div>
+        <div class="email">jxzzz9527@chc.edu.tw</div>
+    </div>
+
+    <script>
+        // 移除返回按鈕相關功能
+    </script>
+</body>
+</html>

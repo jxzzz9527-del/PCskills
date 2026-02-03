@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="keywords" content="打字遊戲,漢字,打漢字,注音符號,ㄅㄆㄇㄈ">  
+    <meta name="description" content="打字英雄">  
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=8">
+
+    <meta http-equiv="X-UA-Compatible" content="chrome=1"/>
+    <title>打字英雄</title>
+    <link rel="stylesheet" type="text/css" href="./css/index.css"/>
+  </head>
+  <body>
+    <img class="wc-share-logo " src="./images/share.png"/>
+    <div id="background"></div>
+    
+    <!-- 開始說明畫面 -->
+    <div id="startScreen" class="game-screen">
+      <div class="screen-content">
+        <h1 class="game-title">打字英雄</h1>
+        <h2 class="game-subtitle">注音符號打字遊戲</h2>
+        <div class="game-description">
+          <p>透過注音符號打字發射導彈擊毀敵機</p>
+          <p>敵機上會顯示注音符號和對應的語詞</p>
+          <p>按對應的注音符號鍵盤按鍵來擊毀敵機</p>
+          <p><strong>60秒倒數計時模式</strong> - 在時間內獲得最高分數！</p>
+          <p><strong>分數計算：</strong>注音量越多分數越高，距離玩家越遠分數越高</p>
+          <p><strong>難度遞增：</strong>每10秒敵機速度增加，生成頻率提升！</p>
+        </div>
+        <button id="startGameBtn" class="game-button">開始遊戲</button>
+        <div class="controls-info">
+          <p><strong>遊戲控制：</strong></p>
+          <p>鍵盤打字輸入對應的注音組合成成語詞即可消滅敵機</p>
+          <p>ENTER鍵：護盾（只能使用1次）</p>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- 結束計算畫面 -->
+    <div id="endScreen" class="game-screen" style="display: none;">
+      <div class="screen-content">
+        <h1 class="game-title">遊戲結束</h1>
+        <div class="final-stats">
+          <div class="stat-item">
+            <span class="stat-label">本次分數：</span>
+            <span id="finalScore">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">最高分：</span>
+            <span id="finalBestScore">0</span>
+          </div>
+        </div>
+        <div class="end-buttons">
+          <button id="restartGameBtn" class="game-button">再玩一次</button>
+          <button id="backToMenuBtn" class="game-button secondary">回到主選單</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameWrapper" style="display: none;">
+      <canvas id="gameCanvas" width="1000" height="911"></canvas>
+      <div id="scoreWrapper">
+        <div class="score-item">
+          <span class="score-title">最高分：</span>
+          <span id="bestScore">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-title">分數：</span>
+          <span id="score">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-title">注音符號數：</span>
+          <span id="letterNum">0</span>
+        </div>
+      </div>
+      <div id="protect">
+      1
+      </div>
+      <div id="funcWrapper">
+        <div id="pause" class="func-item">
+          <img src="./images/pause.png" alt="" />
+        </div>
+        <div id="restart" class="func-item">
+          <img src="./images/restart.png" alt="" />
+        </div>
+      </div>
+      <div id="showInfo">
+        游戏失败
+      </div>
+      <div id="keyboard">
+        <!-- 第一排：ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎ -->
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄅ">ㄅ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄆ">ㄆ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄇ">ㄇ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄈ">ㄈ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄉ">ㄉ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄊ">ㄊ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄋ">ㄋ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄌ">ㄌ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄍ">ㄍ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄎ">ㄎ</div></div>
+        
+        <div class="i-w-half-blank"></div>
+        <!-- 第二排：ㄏㄐㄑㄒㄓㄔㄕㄖㄗ -->
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄏ">ㄏ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄐ">ㄐ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄑ">ㄑ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄒ">ㄒ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄓ">ㄓ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄔ">ㄔ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄕ">ㄕ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄖ">ㄖ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄗ">ㄗ</div></div>
+        <div class="i-w-half-blank"></div>
+        
+        <div class="i-w-half-blank"></div>
+        <div class="i-w-blank"></div>
+        
+        <!-- 第三排：ㄘㄙㄚㄛㄜㄝㄞ -->
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄘ">ㄘ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄙ">ㄙ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄚ">ㄚ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄛ">ㄛ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄜ">ㄜ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄝ">ㄝ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄞ">ㄞ</div></div>
+        <div class="i-w-blank"></div>
+        <div class="i-w-half-blank"></div>
+        
+        <!-- 第四排：韻母和聲調 -->
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄟ">ㄟ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄠ">ㄠ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄡ">ㄡ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄧ">ㄧ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄨ">ㄨ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ㄩ">ㄩ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ˊ">ˊ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ˇ">ˇ</div></div>
+        <div class="i-w"><div class="key-item" data-bopomofo="ˋ">ˋ</div></div>
+      </div>
+    </div>
+    <!-- 載入繁體中文題庫和注音鍵盤映射 -->
+    <script src="./bopomofo-data.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/theajack/type/docs/game.min.js"></script> -->
+    <script src="./game.min.js"></script>
+    <!-- 簡單開始畫面 -->
+    <script src="./simple-start-screen.js"></script>
+    <!-- <script src="./game-canvas-fix.js"></script> -->
+    <!-- <script src="./game-unminified.js"></script> -->
+    <!-- <script src="./game-test.js"></script> -->
+    <!-- <script src="./game-fixed-loading.js"></script> -->
+    <script type="text/javascript" src="https://v1.cnzz.com/z_stat.php?id=1281058979&web_id=1281058979"></script>
+  </body>
+</html>

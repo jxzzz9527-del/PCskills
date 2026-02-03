@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>複製&貼上 Copy and Paste - 複製貼上練習遊戲</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .back-btn:active {
+            transform: translateY(0);
+        }
+        
+        .game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            z-index: 999;
+        }
+        
+        .score-submit-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        .score-submit-message.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        
+        .score-submit-message.error {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="back-btn" onclick="goBack()">← 返回</button>
+        
+        <div class="loading" id="loading">載入遊戲中...</div>
+        
+        <iframe 
+            id="gameFrame" 
+            class="game-frame" 
+            src="../static/games/copy-paste-hero/index.html"
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <script>
+        // 獲取URL參數的函數
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // Share版本：返回主介面
+        function goBack() {
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/share/')) {
+                window.location.href = '/share';
+            } else {
+                // 如果不是Share版本，使用原有邏輯
+                const classId = getUrlParameter('class_id') || '301';
+                const role = '{{ request.session.get("role", "student") }}';
+                
+                if (role === 'teacher') {
+                    window.location.href = `/teacher/classroom?class_id=${classId}`;
+                } else {
+                    window.location.href = `/student/classroom?class_id=${classId}`;
+                }
+            }
+        }
+        
+        // Share版本：移除viewLeaderboard函數
+        
+        // 監聽iframe載入完成
+        document.getElementById('gameFrame').addEventListener('load', function() {
+            document.getElementById('loading').style.display = 'none';
+            
+            // Share版本：在iframe載入後，嘗試隱藏歷史最高分和查看排行榜按鈕
+            const hideShareElements = () => {
+                try {
+                    const iframe = document.getElementById('gameFrame');
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // 隱藏個人最高分顯示區域
+                    const personalBest = iframeDoc.getElementById('personalBest');
+                    if (personalBest) {
+                        personalBest.style.display = 'none';
+                    }
+                    
+                    // 隱藏查看排行榜按鈕
+                    const viewLeaderboardBtn = iframeDoc.getElementById('viewLeaderboardBtn');
+                    if (viewLeaderboardBtn) {
+                        viewLeaderboardBtn.style.display = 'none';
+                    }
+                    
+                    // 修改返回教室按鈕文字為返回
+                    const backToClassroomBtn = iframeDoc.getElementById('backToClassroomBtn');
+                    if (backToClassroomBtn) {
+                        backToClassroomBtn.textContent = '返回';
+                    }
+                } catch (e) {
+                    // 跨域限制，無法直接操作iframe內容
+                }
+            };
+            
+            // 立即嘗試隱藏
+            hideShareElements();
+            
+            // 定期檢查並隱藏這些元素（因為結算畫面可能在遊戲結束後才顯示）
+            const checkInterval = setInterval(() => {
+                hideShareElements();
+            }, 500);
+            
+            // 60秒後停止檢查（確保遊戲結束後也能處理）
+            setTimeout(() => {
+                clearInterval(checkInterval);
+            }, 60000);
+        });
+        
+        // 處理iframe內部的返回請求
+        window.addEventListener('message', function(event) {
+            if (event.data === 'goBack') {
+                goBack();
+            } else if (event.data === 'viewLeaderboard') {
+                // Share版本：忽略查看排行榜請求
+                console.log('Share版本：忽略查看排行榜請求');
+            } else if (event.data && event.data.type === 'gameEnd') {
+                // Share版本：分數計算完成，不提交到排行榜
+                // 遊戲結束後，多次嘗試隱藏相關元素（因為結算畫面可能需要時間載入）
+                const hideElementsAfterGameEnd = () => {
+                    try {
+                        const iframe = document.getElementById('gameFrame');
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        const personalBest = iframeDoc.getElementById('personalBest');
+                        if (personalBest) {
+                            personalBest.style.display = 'none';
+                        }
+                        
+                        const viewLeaderboardBtn = iframeDoc.getElementById('viewLeaderboardBtn');
+                        if (viewLeaderboardBtn) {
+                            viewLeaderboardBtn.style.display = 'none';
+                        }
+                        
+                        const backToClassroomBtn = iframeDoc.getElementById('backToClassroomBtn');
+                        if (backToClassroomBtn) {
+                            backToClassroomBtn.textContent = '返回';
+                        }
+                    } catch (e) {
+                        // 跨域限制
+                    }
+                };
+                
+                // 立即嘗試
+                hideElementsAfterGameEnd();
+                // 1秒後再次嘗試
+                setTimeout(hideElementsAfterGameEnd, 1000);
+                // 2秒後再次嘗試
+                setTimeout(hideElementsAfterGameEnd, 2000);
+                // 3秒後再次嘗試
+                setTimeout(hideElementsAfterGameEnd, 3000);
+            }
+        });
+        
+        // Share版本：不提交分數到排行榜，只計算和顯示分數
+        function submitScoreToLeaderboard(score, playTime) {
+            // Share版本：此功能已移除
+            console.log('Share版本：分數計算完成，不提交到排行榜');
+        }
+        
+        // 顯示分數提交訊息
+        function showScoreSubmitMessage(message, type) {
+            // 創建提示元素
+            const messageEl = document.createElement('div');
+            messageEl.className = `score-submit-message ${type}`;
+            messageEl.textContent = message;
+            
+            // 添加到頁面
+            document.body.appendChild(messageEl);
+            
+            // 3秒後自動移除
+            setTimeout(() => {
+                if (messageEl.parentNode) {
+                    messageEl.parentNode.removeChild(messageEl);
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,149 @@
+// 簡單開始畫面管理
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('載入簡單開始畫面...');
+    
+    const startScreen = document.getElementById('startScreen');
+    const gameWrapper = document.getElementById('gameWrapper');
+    
+    if (startScreen && gameWrapper) {
+        // 確保開始畫面顯示
+        startScreen.style.display = 'flex';
+        gameWrapper.style.display = 'none';
+        console.log('開始畫面已顯示');
+        
+        // 設定開始遊戲按鈕事件
+        const startGameBtn = document.getElementById('startGameBtn');
+        if (startGameBtn) {
+            startGameBtn.addEventListener('click', function() {
+                console.log('開始遊戲按鈕被點擊');
+                
+                // 隱藏開始畫面，顯示遊戲畫面
+                if (startScreen && gameWrapper) {
+                    startScreen.style.display = 'none';
+                    gameWrapper.style.display = 'block';
+                    console.log('切換到遊戲畫面');
+                    
+                    // 等待 DOM 更新後修復遊戲
+                    setTimeout(() => {
+                        const canvas = document.getElementById('gameCanvas');
+                        if (canvas) {
+                            // 獲取正確的容器尺寸
+                            const gameWrapperWidth = gameWrapper.offsetWidth;
+                            const gameWrapperHeight = 911; // 固定高度
+                            
+                            // 重新設定 Canvas 尺寸
+                            canvas.width = gameWrapperWidth;
+                            canvas.height = gameWrapperHeight;
+                            console.log('Canvas 尺寸已設定:', canvas.width, 'x', canvas.height);
+                            
+                            // 設定遊戲尺寸
+                            if (typeof g !== 'undefined') {
+                                g.gameWidth = gameWrapperWidth;
+                                g.gameHeight = gameWrapperHeight;
+                            } else {
+                                window.g = window.g || {};
+                                window.g.gameWidth = gameWrapperWidth;
+                                window.g.gameHeight = gameWrapperHeight;
+                            }
+                            console.log('遊戲尺寸已設定:', gameWrapperWidth, 'x', gameWrapperHeight);
+                            
+                            // 觸發遊戲重新初始化
+                            console.log('觸發遊戲重新初始化...');
+                            
+                            // 調用 window.V() 重新計算 Canvas 尺寸
+                            if (typeof window.V === 'function') {
+                                window.V();
+                                console.log('已調用 window.V()');
+                            }
+                            
+                            // 觸發 resize 事件來重新定位玩家和敵機
+                            setTimeout(() => {
+                                window.dispatchEvent(new Event('resize'));
+                                console.log('已觸發 resize 事件');
+                            }, 100);
+                        }
+                    }, 10);
+                }
+            });
+            console.log('開始遊戲按鈕事件已設定');
+        }
+        
+        // 設定重新開始按鈕事件
+        const restartGameBtn = document.getElementById('restartGameBtn');
+        if (restartGameBtn) {
+            restartGameBtn.addEventListener('click', function() {
+                console.log('重新開始按鈕被點擊');
+                
+                // 隱藏結束畫面，顯示遊戲畫面
+                const endScreen = document.getElementById('endScreen');
+                if (endScreen && gameWrapper) {
+                    endScreen.style.display = 'none';
+                    gameWrapper.style.display = 'block';
+                }
+                
+                // 重新開始遊戲
+                if (typeof window._restart === 'function') {
+                    window._restart();
+                }
+            });
+            console.log('重新開始按鈕事件已設定');
+        }
+        
+        // 設定返回主選單按鈕事件
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        if (backToMenuBtn) {
+            backToMenuBtn.addEventListener('click', function() {
+                console.log('返回主選單按鈕被點擊');
+                
+                // 隱藏結束畫面，顯示開始畫面
+                const endScreen = document.getElementById('endScreen');
+                if (endScreen && startScreen) {
+                    endScreen.style.display = 'none';
+                    startScreen.style.display = 'flex';
+                }
+            });
+            console.log('返回主選單按鈕事件已設定');
+        }
+        
+        console.log('簡單開始畫面設定完成');
+    }
+    
+    // 修復 onresize 事件，確保調整視窗大小時也能正確設定遊戲尺寸
+    const originalOnResize = window.onresize;
+    window.onresize = function(event) {
+        console.log('視窗大小調整事件觸發');
+
+        // 調用原始的 onresize 函數
+        if (originalOnResize) {
+            originalOnResize(event);
+        }
+
+        // 確保遊戲尺寸正確設定
+        setTimeout(() => {
+            const gameWrapper = document.getElementById('gameWrapper');
+            const canvas = document.getElementById('gameCanvas');
+
+            if (gameWrapper && canvas && gameWrapper.style.display !== 'none') {
+                const gameWrapperWidth = gameWrapper.offsetWidth;
+                const gameWrapperHeight = 911; // 固定高度
+
+                console.log('onresize 修復遊戲尺寸:', gameWrapperWidth, 'x', gameWrapperHeight);
+
+                // 更新 Canvas 尺寸
+                canvas.width = gameWrapperWidth;
+                canvas.height = gameWrapperHeight;
+
+                // 更新遊戲尺寸變數
+                if (typeof g !== 'undefined') {
+                    g.gameWidth = gameWrapperWidth;
+                    g.gameHeight = gameWrapperHeight;
+                } else if (window.g) {
+                    window.g.gameWidth = gameWrapperWidth;
+                    window.g.gameHeight = gameWrapperHeight;
+                }
+            }
+        }, 10);
+    };
+    
+    console.log('onresize 事件修復完成');
+});

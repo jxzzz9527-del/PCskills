@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打殭屍遊戲 - 信元老師電腦教學網</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+            background: url('../static/mouse-click/background.jpg') center center / cover;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .game-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .game-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 30px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-area {
+            position: relative;
+            width: 800px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 0;
+            border: none;
+        }
+
+        .lane {
+            position: absolute;
+            width: 33.33%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .lane-left {
+            left: 0;
+            border-right: 2px solid transparent;
+        }
+
+        .lane-center {
+            left: 33.33%;
+            border-right: 2px solid transparent;
+        }
+
+        .lane-right {
+            left: 66.66%;
+        }
+
+        .lane-label {
+            position: absolute;
+            bottom: 0;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            padding: 20px 0;
+            width: 100%;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .row {
+            position: relative;
+            width: 100%;
+            height: calc((100vh - 120px) / 6);
+            border-bottom: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .row[data-row="5"] {
+            height: calc((100vh - 120px) / 6);
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .zombie {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: transparent;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: none;
+        }
+
+        .zombie.jump {
+            animation: jump 0.5s ease;
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .zombie.hit {
+            animation: hit 0.3s ease;
+        }
+
+        @keyframes hit {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .zombie.target {
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 15px #FFD700;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+            display: none;
+        }
+
+        .game-over h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .game-stats {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-actions .btn {
+            min-width: 120px;
+        }
+
+        .instructions-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .instructions-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: left;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .instructions-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .instructions-text {
+            color: #555;
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .instructions-text p {
+            margin-bottom: 10px;
+        }
+
+        .instructions-text strong {
+            color: #333;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 120px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .back-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        /* 歷史最高分顯示 */
+        .highest-score {
+            background: rgba(255, 215, 0, 0.9);
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+
+        /* Share版本：移除排行榜按鈕樣式 */
+    </style>
+</head>
+<body>
+    <a href="#" class="back-btn" onclick="handleBackClick(event)">返回</a>
+
+    <div class="game-container">
+        <!-- 遊戲說明彈窗 -->
+        <div id="gameInstructions" class="instructions-overlay">
+            <div class="instructions-content">
+                <h2>🧟‍♂️ 打殭屍遊戲</h2>
+                <div class="instructions-text">
+                    <p>🎯 <strong>遊戲目標：</strong>快速判斷哪一列的殭屍最下面，然後點擊對應的滑鼠按鍵射擊</p>
+                    <p>⌨️ <strong>操作方式：</strong></p>
+                    <ul>
+                        <li>左列殭屍 → 點擊滑鼠左鍵</li>
+                        <li>中列殭屍 → 按下滑鼠滾輪鍵</li>
+                        <li>右列殭屍 → 點擊滑鼠右鍵</li>
+                    </ul>
+                    <p>⏱️ <strong>時間限制：</strong>每局30秒，看你能打倒多少殭屍</p>
+                    <p>🎨 <strong>得分系統：</strong></p>
+                    <ul>
+                        <li>第1~10隻殭屍：10分</li>
+                        <li>第11~20隻殭屍：20分</li>
+                        <li>第21~30隻殭屍：30分</li>
+                        <li>第31~40隻殭屍：40分</li>
+                        <li>第41~50隻殭屍：50分</li>
+                        <li>以此類推...</li>
+                        <li>連續擊中3次以上：額外獎勵分數</li>
+                    </ul>
+                    <p>⚠️ <strong>遊戲規則：</strong>遊戲開始時每排會有一隻殭屍，只有最下面一排的殭屍才能被射擊，擊中後上面的殭屍會自動往下補位，並在隨機一列生成新殭屍，點錯時殭屍會跳起來提示正確位置</p>
+                </div>
+                <button class="btn btn-primary" onclick="startGameWithInstructions()">我知道了，開始遊戲！</button>
+            </div>
+        </div>
+
+        <div class="game-header">
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">分數</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">擊中</div>
+                    <div class="info-value" id="hits">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">錯誤</div>
+                    <div class="info-value" id="misses">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">時間</div>
+                    <div class="info-value" id="timeLeft">30</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">最高分</div>
+                    <div class="info-value" id="highestScore">0</div>
+                </div>
+            </div>
+            <div class="game-controls">
+                <button class="btn" id="startBtn" onclick="startGame()">開始遊戲</button>
+            </div>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <div class="lane lane-left">
+                <div class="lane-label">左鍵</div>
+                <div class="row" data-row="0"></div>
+                <div class="row" data-row="1"></div>
+                <div class="row" data-row="2"></div>
+                <div class="row" data-row="3"></div>
+                <div class="row" data-row="4"></div>
+                <div class="row" data-row="5"></div>
+            </div>
+            <div class="lane lane-center">
+                <div class="lane-label">滾輪</div>
+                <div class="row" data-row="0"></div>
+                <div class="row" data-row="1"></div>
+                <div class="row" data-row="2"></div>
+                <div class="row" data-row="3"></div>
+                <div class="row" data-row="4"></div>
+                <div class="row" data-row="5"></div>
+            </div>
+            <div class="lane lane-right">
+                <div class="lane-label">右鍵</div>
+                <div class="row" data-row="0"></div>
+                <div class="row" data-row="1"></div>
+                <div class="row" data-row="2"></div>
+                <div class="row" data-row="3"></div>
+                <div class="row" data-row="4"></div>
+                <div class="row" data-row="5"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>遊戲結束！</h2>
+        <div class="final-score" id="finalScore">0</div>
+        <div class="game-stats" id="gameStats">
+            <div class="stat-item">
+                <span class="stat-label">總分：</span>
+                <span class="stat-value" id="finalScoreValue">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">擊中數：</span>
+                <span class="stat-value" id="finalHits">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">錯誤數：</span>
+                <span class="stat-value" id="finalMisses">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">準確率：</span>
+                <span class="stat-value" id="finalAccuracy">0%</span>
+            </div>
+        </div>
+        
+        <div class="game-actions">
+            <button class="btn" onclick="restartGame()">再玩一次</button>
+            <button class="btn" onclick="handleBackClick(event)">返回</button>
+        </div>
+    </div>
+
+    <script>
+        class MouseClickGame {
+            constructor() {
+                this.isPlaying = false;
+                this.score = 0;
+                this.hits = 0;
+                this.misses = 0;
+                this.timeLeft = 30;
+                this.gameInterval = null;
+                this.timeInterval = null;
+                this.zombies = [];
+                this.zombieId = 1; // ID從1開始
+                this.consecutiveHits = 0;
+                this.isPaused = false;
+                this.imagesLoaded = 0;
+                this.totalImages = 15; // 預載入15張圖片
+                this.zombieImages = [];
+                this.gameType = 'mouse_click';
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.preloadImages();
+                this.loadHighestScore();
+                
+                console.log('滑鼠點擊遊戲初始化完成');
+            }
+
+            initializeElements() {
+                this.scoreElement = document.getElementById('score');
+                this.hitsElement = document.getElementById('hits');
+                this.missesElement = document.getElementById('misses');
+                this.timeElement = document.getElementById('timeLeft');
+                this.highestScoreElement = document.getElementById('highestScore');
+                this.gameArea = document.getElementById('gameArea');
+                this.gameOver = document.getElementById('gameOver');
+                this.startBtn = document.getElementById('startBtn');
+                
+                console.log('元素初始化完成');
+            }
+
+            setupEventListeners() {
+                document.addEventListener('mousedown', (e) => this.handleLeftClick(e));
+                document.addEventListener('contextmenu', (e) => this.handleRightClick(e));
+                document.addEventListener('mousedown', (e) => this.handleMiddleClick(e));
+                
+                console.log('事件監聽器設置完成');
+            }
+            
+            async loadHighestScore() {
+                try {
+                    const response = await fetch(`/api/games/highest-score?game_type=${this.gameType}`);
+                    const data = await response.json();
+                    this.highestScore = data.highest_score || 0;
+                    this.highestScoreElement.textContent = this.highestScore;
+                    console.log(`歷史最高分: ${this.highestScore}`);
+                } catch (error) {
+                    console.error('載入歷史最高分失敗:', error);
+                    this.highestScore = 0;
+                }
+            }
+            
+            preloadImages() {
+                console.log('開始預載入殭屍圖片...');
+                
+                // 預載入 zombie_1.png 到 zombie_15.png
+                this.totalImages = 15;
+                
+                for (let i = 1; i <= this.totalImages; i++) {
+                    const img = new Image();
+                    const imagePath = `../static/mouse-click/zombie_${i}.png`;
+                    
+                    img.onload = () => {
+                        this.imagesLoaded++;
+                        this.zombieImages[i] = imagePath;
+                        console.log(`圖片預載入成功: zombie_${i}.png (${this.imagesLoaded}/${this.totalImages})`);
+                        
+                        if (this.imagesLoaded === this.totalImages) {
+                            console.log('所有殭屍圖片預載入完成！');
+                        }
+                    };
+                    
+                    img.onerror = () => {
+                        this.imagesLoaded++;
+                        this.zombieImages[i] = null;
+                        console.error(`圖片預載入失敗: zombie_${i}.png (${this.imagesLoaded}/${this.totalImages})`);
+                        
+                        if (this.imagesLoaded === this.totalImages) {
+                            console.log('所有殭屍圖片預載入完成！');
+                        }
+                    };
+                    
+                    img.src = imagePath;
+                }
+            }
+
+            getAvailableImages() {
+                const available = [];
+                for (let i = 1; i <= this.totalImages; i++) {
+                    if (this.zombieImages[i]) {
+                        available.push(i);
+                    }
+                }
+                return available;
+            }
+
+            startGame() {
+                if (this.isPlaying) return;
+                
+                console.log('開始遊戲...');
+                this.isPlaying = true;
+                this.score = 0;
+                this.hits = 0;
+                this.misses = 0;
+                this.timeLeft = 30;
+                this.zombies = [];
+                this.zombieId = 1; // ID從1開始
+                this.consecutiveHits = 0;
+                this.isPaused = false;
+                
+                this.updateDisplay();
+                this.startBtn.disabled = true;
+                this.startBtn.textContent = '遊戲中...';
+                
+                const instructionsElement = document.getElementById('gameInstructions');
+                if (instructionsElement) {
+                    instructionsElement.style.display = 'none';
+                }
+                
+                this.spawnInitialZombies();
+                this.startTimer();
+                this.startZombieSpawn();
+                
+                console.log('遊戲已開始');
+            }
+
+            spawnInitialZombies() {
+                const rows = [0, 1, 2, 3, 4, 5];
+                
+                rows.forEach(row => {
+                    let lane;
+                    const random = Math.random();
+                    
+                    // 列分配權重：左列48%，右列48%，中列4%
+                    if (random < 0.48) {
+                        lane = 'left';
+                    } else if (random < 0.96) {
+                        lane = 'right';
+                    } else {
+                        lane = 'center';
+                    }
+                    
+                    const zombieNumber = this.zombieId;  // 殭屍編號就是ID
+                    
+                    const zombie = {
+                        id: this.zombieId,
+                        lane: lane,
+                        row: row,
+                        element: null
+                    };
+                    
+                    this.createZombieElement(zombie);
+                    this.zombies.push(zombie);
+                    
+                    console.log(`初始生成殭屍: ${lane}列, 第${row}排 (第${zombieNumber}隻)`);
+                    
+                    this.zombieId++;
+                });
+            }
+
+            startTimer() {
+                this.timeInterval = setInterval(() => {
+                    this.timeLeft--;
+                    this.updateDisplay();
+                    
+                    if (this.timeLeft <= 0) {
+                        this.endGame();
+                    }
+                }, 1000);
+            }
+
+            startZombieSpawn() {
+                console.log('殭屍生成機制：只在擊中時生成新殭屍');
+            }
+
+            createZombieElement(zombie) {
+                const zombieElement = document.createElement('div');
+                zombieElement.className = 'zombie';
+                
+                // 根據殭屍ID選擇對應的圖片
+                const zombieNumber = zombie.id;
+                const imageIndex = Math.floor((zombieNumber - 1) / 10) + 1; // 1-10=1, 11-20=2, 21-30=3...
+                
+                // 確保圖片索引在1-15範圍內
+                const safeImageIndex = Math.min(imageIndex, 15);
+                
+                const availableImages = this.getAvailableImages();
+                const finalImageIndex = availableImages.includes(safeImageIndex) ? safeImageIndex : availableImages[0];
+                
+                if (this.zombieImages[finalImageIndex]) {
+                    const imagePath = this.zombieImages[finalImageIndex];
+                    zombieElement.style.backgroundImage = `url('${imagePath}')`;
+                    console.log(`殭屍元素創建完成: ${zombie.lane}列, 第${zombie.row}排, 使用圖片: zombie_${finalImageIndex}.png (第${zombieNumber}隻殭屍)`);
+                } else {
+                    // 如果圖片載入失敗，使用預設樣式
+                    zombieElement.style.backgroundImage = 'none';
+                    zombieElement.style.backgroundColor = '#4CAF50';
+                    zombieElement.textContent = '🧟';
+                    console.log(`圖片載入失敗，使用預設樣式: 第${zombieNumber}隻殭屍`);
+                }
+                
+                const rowElement = document.querySelector(`.lane-${zombie.lane} .row[data-row="${zombie.row}"]`);
+                if (rowElement) {
+                    rowElement.appendChild(zombieElement);
+                    zombie.element = zombieElement;
+                } else {
+                    console.error(`找不到排元素: ${zombie.lane}列, 第${zombie.row}排`);
+                }
+            }
+
+            removeZombie(zombie) {
+                if (zombie.element && zombie.element.parentNode) {
+                    zombie.element.parentNode.removeChild(zombie.element);
+                }
+                
+                const index = this.zombies.indexOf(zombie);
+                if (index > -1) {
+                    this.zombies.splice(index, 1);
+                }
+                
+                console.log(`殭屍已移除: ${zombie.lane}列, 第${zombie.row}排`);
+                
+                this.moveZombiesDown(zombie.lane, zombie.row);
+                this.spawnNewZombieAfterHit();
+            }
+
+            spawnNewZombieAfterHit() {
+                let lane;
+                const random = Math.random();
+                
+                // 列分配權重：左列48%，右列48%，中列4%
+                if (random < 0.48) {
+                    lane = 'left';
+                } else if (random < 0.96) {
+                    lane = 'right';
+                } else {
+                    lane = 'center';
+                }
+                
+                const zombieNumber = this.zombieId;  // 殭屍編號就是ID
+                
+                const laneZombies = this.zombies.filter(z => z.lane === lane);
+                const occupiedRows = laneZombies.map(z => z.row);
+                
+                let newRow = 0;
+                while (occupiedRows.includes(newRow) && newRow < 6) {
+                    newRow++;
+                }
+                
+                if (newRow < 6) {
+                    const zombie = {
+                        id: this.zombieId,
+                        lane: lane,
+                        row: newRow,
+                        element: null
+                    };
+                    
+                    this.createZombieElement(zombie);
+                    this.zombies.push(zombie);
+                    
+                    console.log(`擊中後生成新殭屍: ${lane}列, 第${newRow}排 (第${zombieNumber}隻)`);
+                    
+                    this.zombieId++;
+                }
+            }
+
+            moveZombiesDown(lane, removedRow) {
+                console.log(`開始處理殭屍掉落，移除位置: ${lane}列, 第${removedRow}排`);
+                
+                const zombiesToMove = this.zombies.filter(z => z.row < removedRow);
+                
+                console.log(`找到需要下移的殭屍數量: ${zombiesToMove.length}`);
+                zombiesToMove.forEach(z => {
+                    console.log(`  - ${z.lane}列, 第${z.row}排`);
+                });
+                
+                zombiesToMove.sort((a, b) => a.row - b.row);
+                
+                zombiesToMove.forEach(zombie => {
+                    zombie.row++;
+                    
+                    if (zombie.element) {
+                        zombie.element.remove();
+                        const newRowElement = document.querySelector(`.lane-${zombie.lane} .row[data-row="${zombie.row}"]`);
+                        if (newRowElement) {
+                            newRowElement.appendChild(zombie.element);
+                        }
+                    }
+                    
+                    console.log(`殭屍自動下移: ${zombie.lane}列, 第${zombie.row}排`);
+                });
+            }
+
+            getClosestZombie() {
+                if (this.zombies.length === 0) return null;
+                
+                const bottomRowZombies = this.zombies.filter(z => z.row === 5);
+                
+                if (bottomRowZombies.length === 0) {
+                    console.log('第5排沒有殭屍可射擊');
+                    return null;
+                }
+                
+                const targetZombie = bottomRowZombies[Math.floor(Math.random() * bottomRowZombies.length)];
+                console.log(`選擇目標: ${targetZombie.lane}列, 第${targetZombie.row}排`);
+                
+                return targetZombie;
+            }
+
+            handleLeftClick(e) {
+                if (!this.isPlaying) return;
+                if (e.button !== 0) return;
+                
+                console.log('左鍵點擊');
+                this.handleClick('left');
+            }
+
+            handleRightClick(e) {
+                if (!this.isPlaying) return;
+                e.preventDefault();
+                console.log('右鍵點擊');
+                this.handleClick('right');
+            }
+
+            handleMiddleClick(e) {
+                if (!this.isPlaying) return;
+                if (e.button !== 1) return;
+                
+                e.preventDefault();
+                console.log('中鍵點擊');
+                this.handleClick('center');
+            }
+
+            handleClick(clickType) {
+                if (this.isPaused) return;
+                
+                const targetZombie = this.getClosestZombie();
+                
+                if (!targetZombie) {
+                    console.log('沒有殭屍可射擊');
+                    return;
+                }
+                
+                console.log(`點擊類型: ${clickType}, 目標殭屍: ${targetZombie.lane}列, 第${targetZombie.row}排`);
+                
+                if (clickType === targetZombie.lane) {
+                    this.hits++;
+                    this.consecutiveHits++;
+                    this.addScore();
+                    this.removeZombie(targetZombie);
+                    
+                    console.log(`正確射擊！連續正確${this.consecutiveHits}次`);
+                } else {
+                    this.misses++;
+                    this.consecutiveHits = 0;
+                    this.showErrorHint(targetZombie);
+                    this.pauseGame(500);
+                    
+                    console.log('錯誤射擊！連續正確次數重置為0');
+                }
+                
+                this.updateDisplay();
+            }
+
+            addScore() {
+                // 基於殭屍ID計算分數，每10隻殭屍提升一個層次
+                const zombieNumber = this.zombieId; // 當前殭屍的ID
+                const level = Math.floor((zombieNumber - 1) / 10) + 1; // 1~10=1級, 11~20=2級, 21~30=3級...
+                
+                const basePoints = level * 10; // 1級=10分, 2級=20分, 3級=30分...
+                const consecutiveBonus = Math.floor(this.consecutiveHits / 3);
+                const bonusMultiplier = 1 + (consecutiveBonus * 0.5);
+                const finalPoints = Math.round(basePoints * bonusMultiplier);
+                
+                this.score += finalPoints;
+                
+                console.log(`獲得 ${finalPoints} 分 (第${zombieNumber}隻殭屍, ${level}級, 基礎${basePoints}分, 連續正確${this.consecutiveHits}次, 獎勵倍率${bonusMultiplier.toFixed(1)}x)`);
+            }
+
+            showErrorHint(zombie) {
+                if (zombie.element) {
+                    zombie.element.classList.add('jump');
+                    
+                    setTimeout(() => {
+                        zombie.element.classList.remove('jump');
+                    }, 500);
+                }
+            }
+
+            pauseGame(duration) {
+                this.isPaused = true;
+                console.log(`遊戲暫停 ${duration}ms`);
+                
+                if (this.gameArea) {
+                    this.gameArea.style.opacity = '0.5';
+                    this.gameArea.style.pointerEvents = 'none';
+                }
+                
+                setTimeout(() => {
+                    this.isPaused = false;
+                    console.log('遊戲恢復');
+                    
+                    if (this.gameArea) {
+                        this.gameArea.style.opacity = '1';
+                        this.gameArea.style.pointerEvents = 'auto';
+                    }
+                }, duration);
+            }
+
+            updateDisplay() {
+                this.scoreElement.textContent = this.score;
+                this.hitsElement.textContent = this.hits;
+                this.missesElement.textContent = this.misses;
+                this.timeElement.textContent = this.timeLeft;
+                
+                if (this.consecutiveHits > 0) {
+                    console.log(`連續正確: ${this.consecutiveHits}次`);
+                }
+            }
+
+            async endGame() {
+                this.isPlaying = false;
+                
+                clearInterval(this.timeInterval);
+                clearInterval(this.gameInterval);
+                
+                this.clearAllZombies();
+                
+                // Share版本：分數計算完成，不提交到排行榜
+                
+                // 更新最終統計
+                document.getElementById('finalScore').textContent = this.score;
+                document.getElementById('finalScoreValue').textContent = this.score;
+                document.getElementById('finalHits').textContent = this.hits;
+                document.getElementById('finalMisses').textContent = this.misses;
+                
+                const accuracy = this.hits + this.misses > 0 ? 
+                    Math.round((this.hits / (this.hits + this.misses)) * 100) : 0;
+                document.getElementById('finalAccuracy').textContent = accuracy + '%';
+                
+                this.gameOver.style.display = 'block';
+                this.startBtn.disabled = false;
+                this.startBtn.textContent = '開始遊戲';
+                
+                console.log(`遊戲結束！最終分數：${this.score}`);
+            }
+
+            // Share版本：不提交分數到排行榜，只計算和顯示分數
+
+            clearAllZombies() {
+                this.zombies.forEach(zombie => {
+                    if (zombie.element && zombie.element.parentNode) {
+                        zombie.element.parentNode.removeChild(zombie.element);
+                    }
+                });
+                
+                this.zombies = [];
+                
+                console.log('所有殭屍已清空');
+            }
+
+            restartGame() {
+                this.gameOver.style.display = 'none';
+                this.clearAllZombies();
+                this.startGame();
+            }
+        }
+
+        // 全域變數
+        let game;
+
+        function startGameWithInstructions() {
+            const instructionsElement = document.getElementById('gameInstructions');
+            if (instructionsElement) {
+                instructionsElement.style.display = 'none';
+            }
+            
+            if (game) {
+                game.startGame();
+            }
+        }
+
+        function startGame() {
+            if (game) {
+                game.startGame();
+            }
+        }
+
+        function restartGame() {
+            if (game) {
+                game.restartGame();
+            }
+        }
+
+        function handleBackClick(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            // Share版本：返回主介面
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/share/')) {
+                window.location.href = '/share';
+            } else {
+                // 如果不是Share版本，使用瀏覽器後退
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/';
+                }
+            }
+        }
+
+        // Share版本：移除viewLeaderboard函數
+
+        // 初始化遊戲
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM載入完成，開始初始化滑鼠點擊遊戲...');
+            game = new MouseClickGame();
+            console.log('滑鼠點擊遊戲實例創建完成:', game);
+            
+            // 確保遊戲說明彈窗在遊戲載入時顯示
+            const instructionsElement = document.getElementById('gameInstructions');
+            if (instructionsElement) {
+                instructionsElement.style.display = 'flex';
+                console.log('遊戲說明彈窗已顯示');
+            } else {
+                console.error('找不到遊戲說明彈窗元素');
+            }
+            
+            // 添加頁面可見性檢測
+            document.addEventListener('visibilitychange', () => {
+                if (game && game.isPlaying) {
+                    if (document.hidden) {
+                        // 頁面不可見時暫停遊戲
+                        console.log('頁面不可見，自動暫停遊戲');
+                        if (!game.isPaused) {
+                            game.togglePause();
+                        }
+                    } else {
+                        // 頁面可見時恢復遊戲
+                        console.log('頁面可見，自動恢復遊戲');
+                        if (game.isPaused) {
+                            game.togglePause();
+                        }
+                    }
+                }
+            });
+            
+            // 添加ESC鍵結束遊戲功能
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' || e.keyCode === 27) {
+                    if (game && game.isPlaying) {
+                        console.log('按下ESC鍵，結束遊戲');
+                        game.endGame();
+                    }
+                }
+            });
+            
+            console.log('滑鼠點擊遊戲初始化完成');
+        });
+    </script>
+</body>
+</html>

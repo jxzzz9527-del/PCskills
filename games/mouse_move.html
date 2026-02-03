@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接水果遊戲 - 信元老師電腦教學網</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: url('../static/接水果背景.png') center/cover no-repeat;
+            overflow: hidden;
+        }
+
+        /* 添加水果背景裝飾 */
+        .game-container .fruit-decoration {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            opacity: 0.3;
+            animation: fruitBounce 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .game-container .fruit-decoration::before {
+            content: '🍎 🍌 🍊 🍓';
+        }
+
+        @keyframes fruitBounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* 添加雲朵背景裝飾 */
+        .game-container .cloud-decoration-1 {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            font-size: 40px;
+            opacity: 0.2;
+            animation: cloudFloat 15s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .game-container .cloud-decoration-1::before {
+            content: '☁️';
+        }
+
+        .game-container .cloud-decoration-2 {
+            position: absolute;
+            top: 100px;
+            right: 100px;
+            font-size: 30px;
+            opacity: 0.15;
+            animation: cloudFloat 20s linear infinite reverse;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .game-container .cloud-decoration-2::before {
+            content: '☁️';
+        }
+
+        @keyframes cloudFloat {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(calc(100vw + 100px)); }
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            font-weight: 500;
+        }
+
+        .back-button:hover {
+            background: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+        }
+
+        .game-header {
+            position: absolute;
+            top: 20px;
+            left: 120px; /* 為返回按鈕留出空間 */
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .game-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 30px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .basket {
+            position: absolute;
+            bottom: 30px;
+            width: 360px;
+            height: 260px;
+            background: url('../static/接水果推車.png?v=2') center/contain no-repeat;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            z-index: 10;
+            /* 確保透明背景正確顯示 */
+            background-color: transparent;
+        }
+
+        .basket::before { content: none; }
+
+        .basket::after { content: none; }
+
+        .fruit {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 160px;
+            z-index: 5;
+            transition: transform 0.1s ease;
+            filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.35));
+        }
+
+        .fruit.apple {
+            color: #ff6b6b;
+        }
+
+        .fruit.banana {
+            color: #feca57;
+        }
+
+        .fruit.orange {
+            color: #ff9f43;
+        }
+
+        .fruit.strawberry {
+            color: #ff6b6b;
+        }
+
+        .fruit.bomb {
+            color: #333;
+            animation: bombShake 0.5s infinite;
+        }
+
+        @keyframes bombShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        .explosion {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 20;
+            animation: explode 0.8s ease-out forwards;
+        }
+
+        .catch-fx {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+            pointer-events: none;
+            z-index: 20;
+            animation: catchEffect 0.3s ease-out forwards;
+        }
+
+        @keyframes catchEffect {
+            0% {
+                transform: translate(-50%, -50%) scale(0.3);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes explode {
+            0% { 
+                transform: scale(0) rotate(0deg); 
+                opacity: 1;
+                background: radial-gradient(circle, #ff4444, #ff0000);
+            }
+            50% { 
+                transform: scale(1.5) rotate(180deg); 
+                opacity: 0.8;
+                background: radial-gradient(circle, #ff8800, #ff4444);
+            }
+            100% { 
+                transform: scale(2) rotate(360deg); 
+                opacity: 0;
+                background: radial-gradient(circle, #ffff00, #ff8800);
+            }
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+            display: none;
+        }
+
+        .game-over h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .game-stats {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .personal-best {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .personal-best h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .best-score {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-actions .btn {
+            min-width: 120px;
+        }
+
+        .game-instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .game-instructions h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .game-instructions p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .game-instructions .instruction-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .game-instructions .instruction-item strong {
+            color: #333;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 15;
+            transform: translate(-50%, -50%);
+        }
+
+        .particle.sparkle {
+            animation: sparkle 0.6s ease-out forwards;
+        }
+
+        @keyframes sparkle {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(360deg); opacity: 0; }
+        }
+
+        /* 調試模式：顯示炸彈碰撞區域 */
+        .debug-mode .fruit.bomb::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border: 2px solid red;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="goBackToClassroom()">← 返回</button>
+    
+    <div class="game-container" id="gameContainer">
+        <!-- 背景裝飾 -->
+        <div class="fruit-decoration"></div>
+        <div class="cloud-decoration-1"></div>
+        <div class="cloud-decoration-2"></div>
+        <div class="game-header">
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">分數</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">時間</div>
+                    <div class="info-value" id="time">60</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">接住</div>
+                    <div class="info-value" id="caught">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">錯過</div>
+                    <div class="info-value" id="missed">0</div>
+                </div>
+            </div>
+            <div class="game-controls">
+                <button class="btn" id="pauseBtn" disabled>暫停</button>
+            </div>
+        </div>
+
+        <div class="basket" id="basket"></div>
+
+        <div class="game-over" id="gameOver">
+            <h2>遊戲結束！</h2>
+            <div class="final-score" id="finalScore">0</div>
+            <div class="game-stats" id="gameStats">
+                <div class="stat-item">
+                    <span class="stat-label">接住水果：</span>
+                    <span class="stat-value" id="finalCaught">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">錯過水果：</span>
+                    <span class="stat-value" id="finalMissed">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">最大連續得分：</span>
+                    <span class="stat-value" id="maxCombo">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">準確率：</span>
+                    <span class="stat-value" id="accuracy">0%</span>
+                </div>
+            </div>
+            <div class="game-actions">
+                <button class="btn" id="restartBtn">再玩一次</button>
+                <button class="btn" onclick="goBackToShare()">返回</button>
+            </div>
+        </div>
+
+        <div class="game-instructions" id="gameInstructions">
+            <h2>遊戲說明</h2>
+            <div class="instruction-item">
+                <strong>操作方式：</strong>
+                使用滑鼠左右移動籃子接住水果
+            </div>
+            <div class="instruction-item">
+                <strong>遊戲規則：</strong>
+                • 接住水果得10分
+                • 接住炸彈💣扣20分
+                • 錯過水果扣1分
+                • 連續接住有額外加分
+            </div>
+            <div class="instruction-item">
+                <strong>快捷鍵：</strong>
+                • 空白鍵：暫停/繼續
+            </div>
+            <button class="btn" id="startGameBtn">我知道了</button>
+        </div>
+    </div>
+
+    <script>
+        class FruitCatchGame {
+            constructor() {
+                this.gameContainer = document.getElementById('gameContainer');
+                this.basket = document.getElementById('basket');
+                this.scoreElement = document.getElementById('score');
+                this.timeElement = document.getElementById('time');
+                this.caughtElement = document.getElementById('caught');
+                this.missedElement = document.getElementById('missed');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.gameOver = document.getElementById('gameOver');
+                this.finalScore = document.getElementById('finalScore');
+                this.restartBtn = document.getElementById('restartBtn');
+                this.gameInstructions = document.getElementById('gameInstructions');
+                this.startGameBtn = document.getElementById('startGameBtn');
+
+                this.score = 0;
+                this.timeLeft = 60;
+                this.caught = 0;
+                this.missed = 0;
+                this.combo = 0; // 連續得分計數
+                this.maxCombo = 0; // 最大連續得分
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.gameInterval = null;
+                this.fruitInterval = null;
+                this.timeInterval = null;
+                this.fruits = [];
+                this.basketX = 0;
+                this.basketY = 0;
+                this.debugMode = false; // 調試模式
+                this.crazyMode = false; // 瘋狂模式
+                this.crazyModeThreshold = 10; // 最後10秒進入瘋狂模式
+
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.updateBasketPosition();
+                // 顯示遊戲說明頁面
+                this.showInstructions();
+            }
+
+            setupEventListeners() {
+                this.pauseBtn.addEventListener('click', () => this.togglePause());
+                this.restartBtn.addEventListener('click', () => this.restartGame());
+                this.startGameBtn.addEventListener('click', () => this.startGameFromInstructions());
+
+                // 接水果遊戲 - 滑鼠移動控制籃子
+                this.gameContainer.addEventListener('mousemove', (e) => {
+                    if (this.isPlaying && !this.isPaused) {
+                        this.moveBasket(e.clientX);
+                    }
+                });
+
+                // 觸控支援
+                this.gameContainer.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    if (this.isPlaying && !this.isPaused) {
+                        const touch = e.touches[0];
+                        this.moveBasket(touch.clientX);
+                    }
+                });
+
+                // ESC鍵結束遊戲功能
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.isPlaying) {
+                        console.log('ESC鍵觸發遊戲結束');
+                        this.endGame();
+                    } else if (e.key === 'd' || e.key === 'D') {
+                        // 按D鍵切換調試模式
+                        this.toggleDebugMode();
+                    } else if (e.key === 'p' || e.key === 'P') {
+                        // 按P鍵快轉到剩12秒（Debug功能）
+                        this.fastForwardToCrazyMode();
+                    }
+                });
+            }
+
+            startGameFromInstructions() {
+                this.gameInstructions.style.display = 'none';
+                this.startGame();
+            }
+
+            moveBasket(x) {
+                const containerWidth = this.gameContainer.offsetWidth;
+                const basketWidth = this.basket.offsetWidth;
+                const maxX = containerWidth - basketWidth;
+                
+                // 只更新X軸位置，Y軸保持固定（bottom: 50px）
+                // 計算籃子的X軸位置，讓籃子中心對準滑鼠位置
+                this.basketX = Math.max(0, Math.min(maxX, x - basketWidth / 2));
+                this.basket.style.left = this.basketX + 'px';
+                
+                // Y軸位置保持固定，由CSS的 bottom: 50px 控制
+                // 不需要在這裡設置Y軸位置
+            }
+
+            updateBasketPosition() {
+                const rect = this.basket.getBoundingClientRect();
+                this.basketX = rect.left;
+                // Y軸位置保持固定，不需要更新
+                // this.basketY = rect.top;
+            }
+
+            startGame() {
+                this.isPlaying = true;
+                this.isPaused = false;
+                this.score = 0;
+                this.timeLeft = 60;
+                this.caught = 0;
+                this.missed = 0;
+                this.combo = 0; // 連續得分計數
+                this.maxCombo = 0; // 最大連續得分
+                this.fruits = [];
+
+                this.updateDisplay();
+                this.pauseBtn.disabled = false;
+                this.gameInstructions.style.display = 'none'; // 隱藏說明頁面
+
+                // 開始計時
+                this.timeInterval = setInterval(() => {
+                    if (!this.isPaused) {
+                        this.timeLeft--;
+                        
+                        // 檢查是否進入瘋狂模式
+                        if (this.timeLeft <= this.crazyModeThreshold && !this.crazyMode) {
+                            this.enterCrazyMode();
+                        }
+                        
+                        this.updateDisplay();
+                        if (this.timeLeft <= 0) {
+                            this.endGame();
+                        }
+                    }
+                }, 1000);
+
+                // 開始產生水果
+                this.fruitInterval = setInterval(() => {
+                    if (!this.isPaused) {
+                        this.createFruit();
+                    }
+                }, 1000);
+
+                // 遊戲主循環
+                this.gameInterval = setInterval(() => {
+                    if (!this.isPaused) {
+                        this.updateFruits();
+                    }
+                }, 16);
+            }
+
+            createFruit() {
+                // 瘋狂模式下增加生成數量
+                const fruitCount = this.crazyMode ? Math.floor(Math.random() * 3) + 1 : 1;
+                
+                for (let i = 0; i < fruitCount; i++) {
+                    this.createSingleFruit();
+                }
+            }
+            
+            createSingleFruit() {
+                const fruit = document.createElement('div');
+                fruit.className = 'fruit';
+                
+                // 瘋狂模式下炸彈機率降低到5%，正常模式10%
+                const bombChance = this.crazyMode ? 0.05 : 0.1;
+                const isBomb = Math.random() < bombChance;
+                let fruitType = null;
+                
+                if (isBomb) {
+                    fruit.classList.add('bomb');
+                    fruit.textContent = '💣';
+                } else {
+                    const fruitTypes = ['apple', 'banana', 'orange', 'strawberry'];
+                    fruitType = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+                    fruit.classList.add(fruitType);
+                    
+                    const fruitEmojis = {
+                        'apple': '🍎',
+                        'banana': '🍌',
+                        'orange': '🍊',
+                        'strawberry': '🍓'
+                    };
+                    
+                    fruit.textContent = fruitEmojis[fruitType];
+                }
+                
+                // 依新尺寸(200px)重新計算隨機起始位置
+                fruit.style.left = Math.random() * (this.gameContainer.offsetWidth - 200) + 'px';
+                fruit.style.top = '-200px';
+                
+                // 瘋狂模式下速度更快
+                const baseSpeed = this.crazyMode ? 5 : 3;
+                const speedVariation = this.crazyMode ? 6 : 4;
+                const speed = baseSpeed + Math.random() * speedVariation; // 瘋狂模式：5-11，正常模式：3-7
+                const fruitData = {
+                    element: fruit,
+                    type: isBomb ? 'bomb' : fruitType,
+                    x: parseFloat(fruit.style.left),
+                    y: -200,
+                    speed: speed,
+                    caught: false,
+                    isBomb: isBomb
+                };
+                
+                this.fruits.push(fruitData);
+                this.gameContainer.appendChild(fruit);
+            }
+
+            updateFruits() {
+                for (let i = this.fruits.length - 1; i >= 0; i--) {
+                    const fruit = this.fruits[i];
+                    if (!fruit.caught) {
+                        fruit.y += fruit.speed;
+                        fruit.element.style.top = fruit.y + 'px';
+                        
+                        // 檢查是否接住
+                        if (this.checkCollision(fruit)) {
+                            this.catchFruit(fruit);
+                        }
+                        // 檢查是否錯過
+                        else if (fruit.y > this.gameContainer.offsetHeight) {
+                            this.missFruit(fruit);
+                        }
+                    }
+                }
+            }
+
+            checkCollision(fruit) {
+                const basketRect = this.basket.getBoundingClientRect();
+                const fruitRect = fruit.element.getBoundingClientRect();
+                
+                // 為炸彈使用更小的碰撞區域，避免過於敏感的碰撞檢測
+                if (fruit.isBomb) {
+                    // 炸彈的碰撞區域縮小到實際emoji大小
+                    const bombSize = 80; // 縮小到80px
+                    const bombCenterX = fruitRect.left + fruitRect.width / 2;
+                    const bombCenterY = fruitRect.top + fruitRect.height / 2;
+                    
+                    const bombRect = {
+                        left: bombCenterX - bombSize / 2,
+                        right: bombCenterX + bombSize / 2,
+                        top: bombCenterY - bombSize / 2,
+                        bottom: bombCenterY + bombSize / 2
+                    };
+                    
+                    return !(basketRect.left > bombRect.right || 
+                            basketRect.right < bombRect.left || 
+                            basketRect.top > bombRect.bottom || 
+                            basketRect.bottom < bombRect.top);
+                } else {
+                    // 普通水果使用正常的碰撞檢測
+                    return !(basketRect.left > fruitRect.right || 
+                            basketRect.right < fruitRect.left || 
+                            basketRect.top > fruitRect.bottom || 
+                            basketRect.bottom < fruitRect.top);
+                }
+            }
+
+            catchFruit(fruit) {
+                fruit.caught = true;
+                
+                // 獲取水果的實際位置
+                const fruitRect = fruit.element.getBoundingClientRect();
+                const gameRect = this.gameContainer.getBoundingClientRect();
+                
+                // 計算相對於遊戲容器的位置
+                const relativeX = fruitRect.left - gameRect.left;
+                const relativeY = fruitRect.top - gameRect.top;
+                
+                // 接中效果：放大+彈跳+光圈
+                const fx = document.createElement('div');
+                fx.className = 'catch-fx';
+                fx.style.position = 'absolute';
+                fx.style.left = (relativeX + 100) + 'px'; // 水果中心位置
+                fx.style.top = (relativeY + 100) + 'px'; // 水果中心位置
+                fx.style.transform = 'translate(-50%, -50%)';
+                this.gameContainer.appendChild(fx);
+
+                // 自動移除特效元素
+                setTimeout(() => {
+                    if (fx.parentNode) {
+                        fx.parentNode.removeChild(fx);
+                    }
+                }, 300);
+
+                // 飄分數
+                const scoreFly = document.createElement('div');
+                scoreFly.textContent = '+10';
+                scoreFly.style.position = 'absolute';
+                scoreFly.style.left = (relativeX + 100) + 'px'; // 水果中心
+                scoreFly.style.top = (relativeY + 80) + 'px'; // 稍微偏上
+                scoreFly.style.fontSize = '36px';
+                scoreFly.style.fontWeight = '900';
+                scoreFly.style.color = '#fff';
+                scoreFly.style.textShadow = '0 3px 8px rgba(0,0,0,0.8)';
+                scoreFly.style.transition = 'transform 600ms ease, opacity 600ms ease';
+                scoreFly.style.transform = 'translate(-50%, -50%) translateY(0)';
+                scoreFly.style.opacity = '1';
+                scoreFly.style.pointerEvents = 'none';
+                scoreFly.style.zIndex = '20';
+                this.gameContainer.appendChild(scoreFly);
+                requestAnimationFrame(() => {
+                    scoreFly.style.transform = 'translate(-50%, -50%) translateY(-60px)';
+                    scoreFly.style.opacity = '0';
+                });
+                setTimeout(() => scoreFly.remove(), 620);
+
+                if (fruit.isBomb) {
+                    // 接住炸彈會扣分，並重置連續得分
+                    this.score -= 20;
+                    this.caught++; // 仍然算作接住，但會扣分
+                    this.combo = 0; // 重置連續得分
+                    
+                    // 修改分數顯示為扣分
+                    scoreFly.textContent = '-20';
+                    scoreFly.style.color = '#ff6b6b'; // 紅色表示扣分
+                    
+                    // 創建爆炸效果
+                    this.createExplosion(relativeX + 100, relativeY + 100);
+                } else {
+                    // 接住水果會加分，並增加連續得分
+                    this.caught++;
+                    this.combo++;
+                    this.maxCombo = Math.max(this.maxCombo, this.combo);
+                    
+                    // 計算連續得分獎勵
+                    let comboBonus = 0;
+                    if (this.combo >= 5) {
+                        comboBonus = Math.floor(this.combo / 5) * 5; // 每5連擊額外+5分
+                    }
+                    
+                    this.score += 10 + comboBonus;
+                    
+                    // 加強粒子效果
+                    this.createParticles(relativeX + 100, relativeY + 100);
+                    this.createParticles(relativeX + 100, relativeY + 100);
+                }
+                
+                // 移除水果/炸彈
+                setTimeout(() => {
+                    if (fruit.element.parentNode) {
+                        fruit.element.parentNode.removeChild(fruit.element);
+                    }
+                    const index = this.fruits.indexOf(fruit);
+                    if (index > -1) {
+                        this.fruits.splice(index, 1);
+                    }
+                }, 100);
+                
+                this.updateDisplay();
+            }
+
+            missFruit(fruit) {
+                fruit.caught = true;
+                
+                if (fruit.isBomb) {
+                    // 錯過炸彈不會扣分，反而算是好事
+                    console.log('炸彈錯過了，好險！');
+                } else {
+                    // 錯過水果會扣分，並重置連續得分
+                    this.missed++;
+                    this.combo = 0; // 重置連續得分
+                }
+                
+                // 移除水果/炸彈
+                if (fruit.element.parentNode) {
+                    fruit.element.parentNode.removeChild(fruit.element);
+                }
+                const index = this.fruits.indexOf(fruit);
+                if (index > -1) {
+                    this.fruits.splice(index, 1);
+                }
+                
+                this.updateDisplay();
+            }
+
+            createParticles(x, y) {
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle sparkle';
+                    particle.style.position = 'absolute';
+                    particle.style.left = x + Math.random() * 40 + 'px';
+                    particle.style.top = y + Math.random() * 40 + 'px';
+                    particle.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                    particle.style.pointerEvents = 'none';
+                    particle.style.zIndex = '15';
+                    
+                    this.gameContainer.appendChild(particle);
+                    
+                    // 使用requestAnimationFrame確保動畫觸發
+                    requestAnimationFrame(() => {
+                        particle.style.animation = 'sparkle 0.6s ease-out forwards';
+                    });
+                    
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 600);
+                }
+            }
+
+            createExplosion(x, y) {
+                const explosion = document.createElement('div');
+                explosion.className = 'explosion';
+                explosion.style.position = 'absolute';
+                explosion.style.left = x + 'px';
+                explosion.style.top = y + 'px';
+                explosion.style.transform = 'translate(-50%, -50%)';
+                explosion.style.pointerEvents = 'none';
+                explosion.style.zIndex = '20';
+                
+                this.gameContainer.appendChild(explosion);
+                
+                setTimeout(() => {
+                    if (explosion.parentNode) {
+                        explosion.parentNode.removeChild(explosion);
+                    }
+                }, 800);
+            }
+
+            togglePause() {
+                this.isPaused = !this.isPaused;
+                this.pauseBtn.textContent = this.isPaused ? '繼續' : '暫停';
+            }
+
+            toggleDebugMode() {
+                this.debugMode = !this.debugMode;
+                if (this.debugMode) {
+                    document.body.classList.add('debug-mode');
+                    console.log('調試模式已開啟 - 按D鍵可關閉，紅色圓圈顯示炸彈碰撞區域');
+                } else {
+                    document.body.classList.remove('debug-mode');
+                    console.log('調試模式已關閉 - 按D鍵可開啟');
+                }
+            }
+
+            endGame() {
+                this.isPlaying = false;
+                this.isPaused = false;
+                
+                clearInterval(this.gameInterval);
+                clearInterval(this.fruitInterval);
+                clearInterval(this.timeInterval);
+                
+                // 重置瘋狂模式狀態
+                this.crazyMode = false;
+                
+                // 清除所有水果
+                this.fruits.forEach(fruit => {
+                    if (fruit.element.parentNode) {
+                        fruit.element.parentNode.removeChild(fruit.element);
+                    }
+                });
+                this.fruits = [];
+                
+                this.finalScore.textContent = this.score;
+                
+                // 更新統計資料
+                const accuracy = this.caught + this.missed > 0 ? Math.round((this.caught / (this.caught + this.missed)) * 100) : 0;
+                document.getElementById('finalCaught').textContent = this.caught;
+                document.getElementById('finalMissed').textContent = this.missed;
+                document.getElementById('accuracy').textContent = accuracy + '%';
+                document.getElementById('maxCombo').textContent = this.maxCombo;
+                
+                this.gameOver.style.display = 'block';
+                
+                this.pauseBtn.disabled = true;
+                this.pauseBtn.textContent = '暫停';
+                
+                // Share版本：分數計算完成，不提交到排行榜
+                
+                console.log(`遊戲結束！最終分數：${this.score}`);
+            }
+
+            restartGame() {
+                this.gameOver.style.display = 'none';
+                this.startGame();
+            }
+
+            fastForwardToCrazyMode() {
+                if (!this.isPlaying || this.isPaused) {
+                    console.log('遊戲未進行中，無法快轉');
+                    return;
+                }
+                
+                console.log('🚀 Debug: 快轉到剩12秒');
+                this.timeLeft = 12;
+                this.updateDisplay();
+                
+                // 顯示快轉提示
+                const fastForwardAlert = document.createElement('div');
+                fastForwardAlert.className = 'fast-forward-alert';
+                fastForwardAlert.innerHTML = '🚀 Debug: 快轉到剩12秒';
+                fastForwardAlert.style.cssText = `
+                    position: fixed;
+                    top: 20%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(45deg, #4CAF50, #45a049);
+                    color: white;
+                    font-size: 24px;
+                    font-weight: bold;
+                    padding: 15px 30px;
+                    border-radius: 15px;
+                    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+                    z-index: 1000;
+                    animation: fastForwardPulse 0.3s ease-in-out;
+                    pointer-events: none;
+                `;
+                
+                // 添加CSS動畫
+                if (!document.getElementById('fastForwardStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'fastForwardStyle';
+                    style.textContent = `
+                        @keyframes fastForwardPulse {
+                            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+                            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                document.body.appendChild(fastForwardAlert);
+                
+                // 1.5秒後移除提示
+                setTimeout(() => {
+                    if (fastForwardAlert.parentNode) {
+                        fastForwardAlert.parentNode.removeChild(fastForwardAlert);
+                    }
+                }, 1500);
+            }
+            
+            enterCrazyMode() {
+                this.crazyMode = true;
+                console.log('🔥 瘋狂模式啟動！');
+                
+                // 添加瘋狂模式視覺效果
+                this.showCrazyModeEffect();
+                
+                // 調整水果生成間隔 - 瘋狂模式下更頻繁
+                clearInterval(this.fruitInterval);
+                this.fruitInterval = setInterval(() => {
+                    if (!this.isPaused) {
+                        this.createFruit();
+                    }
+                }, this.crazyMode ? 300 : 1000); // 瘋狂模式：300ms，正常模式：1000ms
+            }
+            
+            showCrazyModeEffect() {
+                // 創建瘋狂模式提示
+                const crazyModeAlert = document.createElement('div');
+                crazyModeAlert.className = 'crazy-mode-alert';
+                crazyModeAlert.innerHTML = '🔥 瘋狂模式！🔥';
+                crazyModeAlert.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(45deg, #ff6b6b, #ff8e53, #ff6b6b);
+                    color: white;
+                    font-size: 48px;
+                    font-weight: bold;
+                    padding: 20px 40px;
+                    border-radius: 20px;
+                    box-shadow: 0 0 30px rgba(255, 107, 107, 0.8);
+                    z-index: 1000;
+                    animation: crazyModePulse 0.5s ease-in-out;
+                    pointer-events: none;
+                `;
+                
+                // 添加CSS動畫
+                if (!document.getElementById('crazyModeStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'crazyModeStyle';
+                    style.textContent = `
+                        @keyframes crazyModePulse {
+                            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+                            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                document.body.appendChild(crazyModeAlert);
+                
+                // 2秒後移除提示
+                setTimeout(() => {
+                    if (crazyModeAlert.parentNode) {
+                        crazyModeAlert.parentNode.removeChild(crazyModeAlert);
+                    }
+                }, 2000);
+            }
+            
+            updateDisplay() {
+                this.scoreElement.textContent = this.score;
+                this.timeElement.textContent = this.timeLeft;
+                this.caughtElement.textContent = this.caught;
+                this.missedElement.textContent = this.missed;
+                
+                // 瘋狂模式下時間顯示特殊樣式
+                if (this.crazyMode) {
+                    this.timeElement.style.color = '#ff6b6b';
+                    this.timeElement.style.fontWeight = 'bold';
+                    this.timeElement.style.textShadow = '0 0 10px rgba(255, 107, 107, 0.8)';
+                } else {
+                    this.timeElement.style.color = '';
+                    this.timeElement.style.fontWeight = '';
+                    this.timeElement.style.textShadow = '';
+                }
+            }
+
+            showInstructions() {
+                this.gameInstructions.style.display = 'block';
+            }
+        }
+
+        // 初始化遊戲
+        document.addEventListener('DOMContentLoaded', () => {
+            const game = new FruitCatchGame();
+            
+            // 添加頁面可見性檢測
+            document.addEventListener('visibilitychange', () => {
+                if (game && game.isPlaying) {
+                    if (document.hidden) {
+                        // 頁面不可見時暫停遊戲
+                        console.log('頁面不可見，自動暫停遊戲');
+                        if (!game.isPaused) {
+                            game.togglePause();
+                        }
+                    } else {
+                        // 頁面可見時恢復遊戲
+                        console.log('頁面可見，自動恢復遊戲');
+                        if (game.isPaused) {
+                            game.togglePause();
+                        }
+                    }
+                }
+            });
+        });
+
+        // 全域返回教室函數（保留用於返回按鈕）
+        function goBackToClassroom() {
+            const currentPath = window.location.pathname;
+            console.log('返回教室，當前路徑:', currentPath);
+            
+            if (currentPath.includes('/teacher/')) {
+                // 教師端：直接返回教師教室
+                window.location.href = '/teacher/classroom';
+            } else {
+                // 學生端：使用瀏覽器後退功能
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    // 如果沒有歷史記錄，導向學生遊戲頁面
+                    window.location.href = '/student/games';
+                }
+            }
+        }
+
+        // Share版本：返回主介面
+        function goBackToShare() {
+            window.location.href = '/share';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注音打字 - 左區 - 信元老師電腦教學網</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .game-title {
+            display: none;
+        }
+
+        .game-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 30px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-display {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .current-symbol {
+            font-size: 150px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .symbol-hint {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .keyboard-container {
+            background: #0b1220;
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .keyboard-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .keyboard-key {
+            width: 56px;
+            height: 48px;
+            background: #e6eef8;
+            color: #081226;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.08), 0 6px 18px rgba(2,6,23,0.5);
+            user-select: none;
+            transition: all 0.2s ease;
+            font-size: 1.4em;
+            /* 移除點擊功能，只作為視覺輔助 */
+            cursor: default;
+        }
+
+        .keyboard-key:hover {
+            /* 移除懸停效果，因為不再可點擊 */
+            transform: none;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.08), 0 6px 18px rgba(2,6,23,0.5);
+        }
+
+        .keyboard-key:active {
+            transform: none;
+        }
+
+        .keyboard-key.small {
+            width: 42px;
+            height: 40px;
+            font-size: 13px;
+        }
+        
+        .keyboard-key.small-wide {
+            width: calc(42px * 1.2);
+            height: 40px;
+            font-size: 13px;
+        }
+        
+        .keyboard-key.small-wider {
+            width: calc(42px * 1.2);
+            height: 40px;
+            font-size: 13px;
+        }
+        
+        .keyboard-key.right-align {
+            margin-left: auto;
+        }
+        
+        .keyboard-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        
+        .keyboard-row .left-section {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .keyboard-row .right-section {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .keyboard-key.wide {
+            width: calc(56px * 1.75 + 8px);
+        }
+
+        .keyboard-key.tab {
+            width: calc(56px * 1.4 + 8px);
+        }
+
+        .keyboard-key.caps {
+            width: calc(56px * 1.6 + 8px);
+        }
+
+        .keyboard-key.shift {
+            width: calc(56px * 2.2 + 8px);
+        }
+
+        .keyboard-key.enter {
+            width: calc(56px * 1.6 + 8px);
+        }
+        
+        .keyboard-key.enter-11 {
+            width: calc((56px * 1.6 + 8px) * 1.1);
+        }
+        
+        .keyboard-key.wide-12 {
+            width: calc((56px * 1.75 + 8px) * 1.2 * 1.1);
+        }
+        
+
+
+        .keyboard-key.back {
+            width: calc(56px * 1.4 + 8px);
+        }
+
+        .keyboard-key.space {
+            flex: 1;
+            height: 48px;
+            border-radius: 8px;
+            background: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071226;
+            font-weight: 700;
+        }
+        
+        /* 空白鍵盤格子樣式 */
+        .keyboard-key.blank-key {
+            background: #cbd5e1;
+            color: #071226;
+            cursor: default;
+            opacity: 0.8;
+        }
+        
+        .keyboard-key.blank-key:hover {
+            transform: none;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.08), 0 6px 18px rgba(2,6,23,0.5);
+        }
+        
+        .keyboard-key.blank-key:active {
+            transform: none;
+        }
+
+
+
+        .keyboard-key.highlight {
+            background: #ffd700;
+            border-color: #ffb700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            animation: pulse 1s infinite;
+        }
+
+        .keyboard-key.correct {
+            background: #4caf50;
+            border-color: #45a049;
+            color: white;
+            animation: correctPulse 0.5s ease-out;
+        }
+
+        .keyboard-key.wrong {
+            background: #f44336;
+            border-color: #d32f2f;
+            color: white;
+            animation: wrongShake 0.5s ease-out;
+        }
+
+        .keyboard-key.hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+            display: none;
+        }
+
+        .game-over h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .game-stats {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-actions .btn {
+            min-width: 120px;
+        }
+
+        /* 新增：歷史記錄區域樣式 */
+        .history-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #dee2e6;
+        }
+
+        .history-section h3 {
+            color: #3A7CA5;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .history-stats {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-label {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .history-value {
+            color: #3A7CA5;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .view-leaderboard-btn {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .view-leaderboard-btn:hover {
+            background: linear-gradient(45deg, #f57c00, #ef6c00);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .game-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .game-btn:hover {
+            background: linear-gradient(45deg, #45a049, #388E3C);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .game-btn#backToListBtn {
+            background: linear-gradient(45deg, #9e9e9e, #757575);
+        }
+
+        .game-btn#backToListBtn:hover {
+            background: linear-gradient(45deg, #757575, #616161);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 120px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        /* 遊戲說明彈窗樣式 */
+        .instructions-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .instructions-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: left;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .instructions-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .instructions-text {
+            color: #555;
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .instructions-text p {
+            margin-bottom: 10px;
+        }
+
+        .instructions-text strong {
+            color: #333;
+        }
+
+        .instructions-text ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .instructions-text li {
+            margin-bottom: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <a href="#" class="back-btn" onclick="handleBackClick(event)">返回</a>
+
+    <div class="game-container">
+        <!-- 遊戲說明彈窗 -->
+        <div id="gameInstructions" class="instructions-overlay">
+            <div class="instructions-content">
+                <h2>注音打字 - 左區</h2>
+                                 <div class="instructions-text">
+                     <p>🎯 <strong>遊戲目標：</strong>根據螢幕上顯示的注音符號，按鍵盤上對應位置的按鍵</p>
+                     <p>⌨️ <strong>操作方式：</strong>根據畫面上的題目按下對應的按鍵，前30題會有提示，超過30題後沒有提示</p>
+                     <p>⏱️ <strong>時間限制：</strong>2分鐘內答對越多題目，分數越高</p>
+                 </div>
+                <button class="btn btn-primary" onclick="startGameWithInstructions()">我知道了，開始遊戲！</button>
+            </div>
+        </div>
+
+        <div class="game-header">
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">分數</div>
+                    <div class="info-value" id="score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">正確</div>
+                    <div class="info-value" id="correct">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">錯誤</div>
+                    <div class="info-value" id="wrong">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">連續答對</div>
+                    <div class="info-value" id="consecutiveCorrect">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">時間</div>
+                    <div class="info-value" id="timeLeft">120</div>
+                </div>
+            </div>
+            <div class="game-controls">
+                <button class="btn" id="pauseBtn" onclick="togglePause()" disabled>暫停</button>
+            </div>
+        </div>
+
+        <div class="main-display">
+            <div class="current-symbol" id="currentSymbol">ㄅ</div>
+            <div class="symbol-hint" id="symbolHint">根據畫面上的題目按下對應的按鍵，前30題會有提示，超過30題後沒有提示</div>
+        </div>
+
+        <div class="keyboard-container">
+            <!-- 第一排：數字列（保留 ` 和 1~0 - = Backspace） -->
+            <div class="keyboard-row">
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key" data-symbol="ㄅ">ㄅ</div>
+                <div class="keyboard-key" data-symbol="ㄉ">ㄉ</div>
+                <div class="keyboard-key" data-symbol="ˇ">ˇ</div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key back right-align"></div>
+            </div>
+
+            <!-- 第二排：Tab q-p [ ] \ -->
+            <div class="keyboard-row">
+                <div class="keyboard-key blank-key tab"></div>
+                <div class="keyboard-key" data-symbol="ㄆ">ㄆ</div>
+                <div class="keyboard-key" data-symbol="ㄊ">ㄊ</div>
+                <div class="keyboard-key" data-symbol="ㄍ">ㄍ</div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key right-align"></div>
+            </div>
+
+            <!-- 第三排：Caps A-L ; ' Enter -->
+            <div class="keyboard-row">
+                <div class="keyboard-key blank-key caps"></div>
+                <div class="keyboard-key" data-symbol="ㄇ">ㄇ</div>
+                <div class="keyboard-key" data-symbol="ㄋ">ㄋ</div>
+                <div class="keyboard-key" data-symbol="ㄎ">ㄎ</div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key enter-11"></div>
+            </div>
+
+            <!-- 第四排：Shift Z-M , . / Shift -->
+            <div class="keyboard-row">
+                <div class="keyboard-key blank-key shift"></div>
+                <div class="keyboard-key" data-symbol="ㄈ">ㄈ</div>
+                <div class="keyboard-key" data-symbol="ㄌ">ㄌ</div>
+                <div class="keyboard-key" data-symbol="ㄏ">ㄏ</div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key"></div>
+                <div class="keyboard-key blank-key wide-12"></div>
+            </div>
+
+            <!-- 第五排：Ctrl Win Alt (space) 四個空白鍵位 -->
+            <div class="keyboard-row">
+                <div class="keyboard-key blank-key small-wide"></div>
+                <div class="keyboard-key blank-key small-wide"></div>
+                <div class="keyboard-key blank-key small-wide"></div>
+                <div class="keyboard-key space" style="width: calc(56px * 1.5);"></div>
+                <div class="keyboard-key blank-key small-wider"></div>
+                <div class="keyboard-key blank-key small-wider"></div>
+                <div class="keyboard-key blank-key small-wider"></div>
+                <div class="keyboard-key blank-key small-wider right-align"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>遊戲結束！</h2>
+        <div class="final-score" id="finalScore">0</div>
+        <div class="game-stats" id="gameStats">
+            <div class="stat-item">
+                <span class="stat-label">答對題數：</span>
+                <span class="stat-value" id="finalCorrect">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">答錯題數：</span>
+                <span class="stat-value" id="finalWrong">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">準確率：</span>
+                <span class="stat-value" id="finalAccuracy">0%</span>
+            </div>
+        </div>
+        
+        <div class="game-actions">
+            <button class="game-btn" onclick="restartGame()">再玩一次</button>
+            <button class="game-btn" onclick="handleBackClick(event)">返回</button>
+        </div>
+    </div>
+
+    <script>
+        class BopomofoTypingLeftGame {
+            constructor() {
+                this.currentZone = 'left'; // 固定為左區
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.score = 0;
+                this.correct = 0;
+                this.wrong = 0;
+                this.timeLeft = 120; // 2分鐘
+                this.currentSymbol = '';
+                this.gameInterval = null;
+                this.timeInterval = null;
+                this.consecutiveCorrect = 0; // 連續答對次數
+                this.lastSymbol = ''; // 上一題的符號
+                
+                console.log('左區遊戲類構造函數開始...');
+                this.initializeElements();
+                this.setupEventListeners();
+                this.loadZoneData();
+                
+                // 設置初始符號
+                this.currentSymbol = 'ㄅ';
+                this.currentSymbolElement.textContent = this.currentSymbol;
+                this.lastSymbol = this.currentSymbol;
+                console.log('設置初始符號:', this.currentSymbol);
+                
+                console.log('左區遊戲類構造函數完成');
+            }
+
+            initializeElements() {
+                this.scoreElement = document.getElementById('score');
+                this.correctElement = document.getElementById('correct');
+                this.wrongElement = document.getElementById('wrong');
+                this.consecutiveCorrectElement = document.getElementById('consecutiveCorrect');
+                this.timeElement = document.getElementById('timeLeft');
+                this.currentSymbolElement = document.getElementById('currentSymbol');
+                this.symbolHintElement = document.getElementById('symbolHint');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.gameOver = document.getElementById('gameOver');
+                
+                this.keyboardKeys = document.querySelectorAll('.keyboard-key');
+                
+                // 檢查元素是否都找到
+                console.log('初始化元素檢查:');
+                console.log('分數元素:', this.scoreElement);
+                console.log('正確元素:', this.correctElement);
+                console.log('錯誤元素:', this.wrongElement);
+                console.log('連續答對元素:', this.consecutiveCorrectElement);
+                console.log('時間元素:', this.timeElement);
+                console.log('當前符號元素:', this.currentSymbolElement);
+                console.log('符號提示元素:', this.symbolHintElement);
+                console.log('暫停按鈕:', this.pauseBtn);
+                console.log('遊戲結束元素:', this.gameOver);
+                console.log('鍵盤按鍵數量:', this.keyboardKeys.length);
+            }
+
+            setupEventListeners() {
+                // 移除點擊事件監聽器，鍵盤只作為視覺輔助
+                // this.keyboardKeys.forEach(key => {
+                //     key.addEventListener('click', () => this.handleKeyClick(key));
+                // });
+
+                // 鍵盤事件
+                document.addEventListener('keydown', (e) => this.handleKeyboardInput(e));
+            }
+
+            loadZoneData() {
+                this.zoneData = {
+                    left: ['ㄅ', 'ㄆ', 'ㄇ', 'ㄈ', 'ㄉ', 'ㄊ', 'ㄋ', 'ㄌ', 'ˇ', 'ㄍ', 'ㄎ', 'ㄏ'],
+                    middle: ['ˋ', 'ㄐ', 'ㄑ', 'ㄒ', 'ㄓ', 'ㄔ', 'ㄕ', 'ㄖ', 'ˊ', 'ㄗ', 'ㄘ', 'ㄙ', '˙', 'ㄧ', 'ㄨ', 'ㄩ'],
+                    right: ['ㄚ', 'ㄛ', 'ㄜ', 'ㄝ', 'ㄞ', 'ㄟ', 'ㄠ', 'ㄡ', 'ㄢ', 'ㄣ', 'ㄤ', 'ㄥ', 'ㄦ'],
+                    all: ['ㄅ', 'ㄆ', 'ㄇ', 'ㄈ', 'ㄉ', 'ㄊ', 'ㄋ', 'ㄌ', 'ˇ', 'ㄍ', 'ㄎ', 'ㄏ', 'ˋ', 'ㄐ', 'ㄑ', 'ㄒ', 'ㄓ', 'ㄔ', 'ㄕ', 'ㄖ', 'ˊ', 'ㄗ', 'ㄘ', 'ㄙ', '˙', 'ㄧ', 'ㄨ', 'ㄩ', 'ㄚ', 'ㄛ', 'ㄜ', 'ㄝ', 'ㄞ', 'ㄟ', 'ㄠ', 'ㄡ', 'ㄢ', 'ㄣ', 'ㄤ', 'ㄥ', 'ㄦ']
+                };
+            }
+
+            setZone(zone) {
+                this.currentZone = zone;
+                this.consecutiveCorrect = 0; // 重置連續答對計數
+                this.updateKeyboardDisplay();
+                
+                // 更新提示文字
+                const zoneNames = { left: '左區', middle: '中區', right: '右區', all: '全部' };
+                this.symbolHintElement.textContent = `練習${zoneNames[zone]}注音符號 - 按鍵盤上對應位置的按鍵`;
+            }
+
+            updateKeyboardDisplay() {
+                const currentSymbols = this.zoneData[this.currentZone];
+                
+                this.keyboardKeys.forEach(key => {
+                    const symbol = key.getAttribute('data-symbol');
+                    if (currentSymbols.includes(symbol)) {
+                        key.classList.remove('hidden');
+                    } else {
+                        key.classList.add('hidden');
+                    }
+                });
+            }
+
+            startGame() {
+                if (this.isPlaying) return;
+                
+                console.log('開始左區遊戲...');
+                this.isPlaying = true;
+                this.consecutiveCorrect = 0; // 重置連續答對計數
+                this.pauseBtn.disabled = false;
+                
+                // 隱藏遊戲說明彈窗
+                const instructionsElement = document.getElementById('gameInstructions');
+                if (instructionsElement) {
+                    instructionsElement.style.display = 'none';
+                    console.log('遊戲說明彈窗已隱藏');
+                }
+                
+                this.generateNewSymbol();
+                this.startTimer();
+                console.log('左區遊戲已開始，當前符號:', this.currentSymbol);
+            }
+
+            generateNewSymbol() {
+                const symbols = this.zoneData[this.currentZone];
+                let newSymbol;
+                let attempts = 0;
+                const maxAttempts = 10; // 防止無限循環
+                
+                do {
+                    newSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                    attempts++;
+                    // 如果只有一個符號或者嘗試次數過多，直接使用當前符號
+                    if (symbols.length === 1 || attempts >= maxAttempts) {
+                        break;
+                    }
+                } while (newSymbol === this.currentSymbol); // 改為與當前符號比較
+                
+                this.lastSymbol = this.currentSymbol;
+                this.currentSymbol = newSymbol;
+                this.currentSymbolElement.textContent = this.currentSymbol;
+                
+                console.log('生成新符號:', this.currentSymbol, '來自區別:', this.currentZone);
+                console.log('可用符號:', symbols, '上一題:', this.lastSymbol);
+                
+                // 高亮對應的鍵盤按鍵（只有在答對數少於30題時才顯示）
+                if (this.correct < 30) {
+                    this.highlightCurrentKey();
+                } else {
+                    // 答對數超過30題，清除所有高亮
+                    this.keyboardKeys.forEach(key => {
+                        key.classList.remove('highlight');
+                    });
+                    console.log('答對數超過30題，已取消鍵位亮起提示');
+                }
+            }
+
+            highlightCurrentKey() {
+                // 清除所有高亮
+                this.keyboardKeys.forEach(key => {
+                    key.classList.remove('highlight');
+                });
+                
+                // 高亮當前符號對應的按鍵
+                const targetKey = Array.from(this.keyboardKeys).find(key => 
+                    key.getAttribute('data-symbol') === this.currentSymbol
+                );
+                
+                if (targetKey) {
+                    targetKey.classList.add('highlight');
+                    console.log('已高亮按鍵:', targetKey, '符號:', this.currentSymbol);
+                } else {
+                    console.error('找不到對應的按鍵:', this.currentSymbol);
+                    console.log('所有可用按鍵:', Array.from(this.keyboardKeys).map(k => k.getAttribute('data-symbol')));
+                }
+            }
+
+            handleKeyClick(keyElement) {
+                if (!this.isPlaying || this.isPaused) return;
+                
+                const clickedSymbol = keyElement.getAttribute('data-symbol');
+                
+                if (clickedSymbol === this.currentSymbol) {
+                    this.handleCorrectAnswer(keyElement);
+                } else {
+                    this.handleWrongAnswer(keyElement);
+                }
+            }
+
+            handleKeyboardInput(e) {
+                if (!this.isPlaying || this.isPaused) return;
+                
+                // DEBUG: ESC鍵快速跳轉到遊戲結束
+                if (e.key === 'Escape') {
+                    console.log('DEBUG: ESC鍵按下，快速跳轉到遊戲結束');
+                    this.endGame();
+                    return;
+                }
+                
+                // 根據實際鍵盤佈局對應注音符號的映射
+                const positionMap = {
+                    // 第一排：數字列（1-0, -, =）
+                    '1': 'ㄅ', '2': 'ㄉ', '3': 'ˇ', '4': 'ˋ', '5': 'ㄓ', 
+                    '6': 'ˊ', '7': '˙', '8': 'ㄚ', '9': 'ㄞ', '0': 'ㄢ', 
+                    '-': 'ㄦ',
+                    
+                    // 第二排：Tab q-p
+                    'q': 'ㄆ', 'w': 'ㄊ', 'e': 'ㄍ', 'r': 'ㄐ', 't': 'ㄔ', 
+                    'y': 'ㄗ', 'u': 'ㄧ', 'i': 'ㄛ', 'o': 'ㄟ', 'p': 'ㄣ',
+                    
+                    // 第三排：Caps A-L
+                    'a': 'ㄇ', 's': 'ㄋ', 'd': 'ㄎ', 'f': 'ㄑ', 'g': 'ㄕ', 
+                    'h': 'ㄘ', 'j': 'ㄨ', 'k': 'ㄜ', 'l': 'ㄠ', ';': 'ㄤ',
+                    
+                    // 第四排：Shift Z-M
+                    'z': 'ㄈ', 'x': 'ㄌ', 'c': 'ㄏ', 'v': 'ㄒ', 'b': 'ㄖ', 
+                    'n': 'ㄙ', 'm': 'ㄩ', ',': 'ㄝ', '.': 'ㄡ', '/': 'ㄥ'
+                };
+                
+                const pressedKey = e.key.toLowerCase();
+                console.log('按下的鍵:', pressedKey, '當前符號:', this.currentSymbol);
+                
+                // 處理按鍵位置對應
+                if (positionMap[pressedKey] === this.currentSymbol) {
+                    console.log('按鍵匹配成功:', pressedKey, '->', this.currentSymbol);
+                    const targetKey = Array.from(this.keyboardKeys).find(key => 
+                        key.getAttribute('data-symbol') === this.currentSymbol
+                    );
+                    if (targetKey) {
+                        this.handleCorrectAnswer(targetKey);
+                    }
+                    return;
+                }
+                
+                // 如果按錯鍵，顯示錯誤並扣分
+                if (positionMap[pressedKey]) {
+                    console.log('按錯鍵:', pressedKey, '->', positionMap[pressedKey], '應該按:', this.currentSymbol);
+                    const wrongKey = Array.from(this.keyboardKeys).find(key => 
+                        key.getAttribute('data-symbol') === positionMap[pressedKey]
+                    );
+                    if (wrongKey) {
+                        this.handleWrongAnswer(wrongKey);
+                    }
+                } else {
+                    console.log('未找到匹配的按鍵:', pressedKey);
+                }
+            }
+
+            handleCorrectAnswer(keyElement) {
+                this.correct++;
+                this.consecutiveCorrect++;
+                
+                // 連續答對得分機制
+                let baseScore = 10;
+                if (this.consecutiveCorrect >= 3) {
+                    baseScore = 15; // 連續3題以上答對，每題15分
+                }
+                if (this.consecutiveCorrect >= 5) {
+                    baseScore = 20; // 連續5題以上答對，每題20分
+                }
+                if (this.consecutiveCorrect >= 10) {
+                    baseScore = 25; // 連續10題以上答對，每題25分
+                }
+                
+                this.score += baseScore;
+                
+                keyElement.classList.remove('highlight');
+                keyElement.classList.add('correct');
+                
+                setTimeout(() => {
+                    keyElement.classList.remove('correct');
+                }, 500);
+                
+                this.updateDisplay();
+                this.generateNewSymbol();
+            }
+
+            handleWrongAnswer(keyElement) {
+                this.wrong++;
+                this.score = Math.max(0, this.score - 30); // 答錯扣30分
+                this.consecutiveCorrect = 0; // 重置連續答對計數
+                
+                keyElement.classList.remove('highlight');
+                keyElement.classList.add('wrong');
+                
+                setTimeout(() => {
+                    keyElement.classList.remove('wrong');
+                }, 500);
+                
+                this.updateDisplay();
+            }
+
+            startTimer() {
+                this.timeInterval = setInterval(() => {
+                    if (!this.isPaused) {
+                        this.timeLeft--;
+                        this.updateDisplay();
+                        
+                        if (this.timeLeft <= 0) {
+                            this.endGame();
+                        }
+                    }
+                }, 1000);
+            }
+
+            togglePause() {
+                this.isPaused = !this.isPaused;
+                this.pauseBtn.textContent = this.isPaused ? '繼續' : '暫停';
+            }
+
+            endGame() {
+                this.isPlaying = false;
+                this.isPaused = false;
+                
+                clearInterval(this.timeInterval);
+                
+                // 更新最終統計
+                document.getElementById('finalScore').textContent = this.score;
+                document.getElementById('finalCorrect').textContent = this.correct;
+                document.getElementById('finalWrong').textContent = this.wrong;
+                
+                const accuracy = this.correct + this.wrong > 0 ? 
+                    Math.round((this.correct / (this.correct + this.wrong)) * 100) : 0;
+                document.getElementById('finalAccuracy').textContent = accuracy + '%';
+                
+                this.gameOver.style.display = 'block';
+                this.pauseBtn.disabled = true;
+                this.pauseBtn.textContent = '暫停';
+                
+                // 提交分數
+                // Share版本：分數計算完成，不提交到排行榜
+                // Share版本：不載入歷史記錄
+            }
+
+            restartGame() {
+                this.gameOver.style.display = 'none';
+                this.resetGame();
+                this.startGame();
+            }
+
+            resetGame() {
+                this.score = 0;
+                this.correct = 0;
+                this.wrong = 0;
+                this.timeLeft = 120;
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.consecutiveCorrect = 0;
+                this.lastSymbol = '';
+                
+                this.updateDisplay();
+                this.pauseBtn.disabled = true;
+                this.pauseBtn.textContent = '暫停';
+                
+                // 清除所有按鍵狀態
+                this.keyboardKeys.forEach(key => {
+                    key.classList.remove('highlight', 'correct', 'wrong');
+                });
+            }
+
+            updateDisplay() {
+                this.scoreElement.textContent = this.score;
+                this.correctElement.textContent = this.correct;
+                this.wrongElement.textContent = this.wrong;
+                this.consecutiveCorrectElement.textContent = this.consecutiveCorrect;
+                this.timeElement.textContent = this.timeLeft;
+            }
+
+            // Share版本：不提交分數到排行榜，只計算和顯示分數
+            // Share版本：移除歷史最高分載入功能
+
+            showScoreSubmitError() {
+                console.log('顯示左區分數提交錯誤信息');
+                // 在歷史記錄區域顯示錯誤信息
+                const historySection = document.getElementById('historySection');
+                if (historySection) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = `
+                        background: #ffebee;
+                        border: 1px solid #f44336;
+                        color: #c62828;
+                        padding: 10px;
+                        border-radius: 5px;
+                        margin: 10px 0;
+                        font-size: 0.9em;
+                    `;
+                    errorDiv.innerHTML = `
+                        <strong>⚠️ 分數提交失敗</strong><br>
+                        分數無法自動登入到排行榜，請檢查網絡連接或聯繫管理員。
+                    `;
+                    
+                    // 插入到歷史記錄區域的開頭
+                    historySection.insertBefore(errorDiv, historySection.firstChild);
+                    
+                    // 5秒後自動移除錯誤信息
+                    setTimeout(() => {
+                        if (errorDiv.parentNode) {
+                            errorDiv.parentNode.removeChild(errorDiv);
+                        }
+                    }, 5000);
+                }
+            }
+        }
+
+        // 全域函數
+        let game;
+
+        function startGameWithInstructions() {
+            // 隱藏說明彈窗並開始遊戲
+            const instructionsElement = document.getElementById('gameInstructions');
+            if (instructionsElement) {
+                instructionsElement.style.display = 'none';
+            }
+            
+            if (game) {
+                game.startGame();
+            }
+        }
+
+        function togglePause() {
+            game.togglePause();
+        }
+
+        function restartGame() {
+            game.restartGame();
+        }
+
+        function handleBackClick(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            // Share版本：返回主介面
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/share/')) {
+                window.location.href = '/share';
+            } else {
+                // 如果不是Share版本，使用原有邏輯
+                if (currentPath.includes('/teacher/')) {
+                    window.location.href = '/teacher/classroom';
+                } else {
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = '/student/classroom';
+                    }
+                }
+            }
+        }
+
+        // Share版本：移除getStudentClassId函數
+
+        // 初始化遊戲
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM載入完成，開始初始化左區遊戲...');
+            game = new BopomofoTypingLeftGame();
+            console.log('左區遊戲實例創建完成:', game);
+            
+            // 確保遊戲說明彈窗在遊戲載入時顯示
+            const instructionsElement = document.getElementById('gameInstructions');
+            if (instructionsElement) {
+                instructionsElement.style.display = 'flex';
+                console.log('左區遊戲說明彈窗已顯示');
+            } else {
+                console.error('找不到左區遊戲說明彈窗元素');
+            }
+            
+            // 儲存class_id
+            const urlParams = new URLSearchParams(window.location.search);
+            const classId = urlParams.get('class_id');
+            if (classId) {
+                localStorage.setItem('student_class_id', classId);
+                console.log('已儲存class_id:', classId);
+            }
+            
+            // 檢查URL參數來設置區別
+            const zone = urlParams.get('zone');
+            if (zone && ['left', 'middle', 'right'].includes(zone)) {
+                game.setZone(zone);
+                console.log('已設置遊戲區別:', zone);
+            }
+            
+            // 設置排行榜按鈕事件
+            // Share版本：移除排行榜按鈕事件監聽器
+            
+            // 添加頁面可見性檢測
+            document.addEventListener('visibilitychange', () => {
+                if (game && game.isPlaying) {
+                    if (document.hidden) {
+                        // 頁面不可見時暫停遊戲
+                        console.log('頁面不可見，自動暫停遊戲');
+                        if (!game.isPaused) {
+                            game.togglePause();
+                        }
+                    } else {
+                        // 頁面可見時恢復遊戲
+                        console.log('頁面可見，自動恢復遊戲');
+                        if (game.isPaused) {
+                            game.togglePause();
+                        }
+                    }
+                }
+            });
+            
+            console.log('左區遊戲初始化完成');
+        });
+    </script>
+</body>
+</html>
+ㄐ

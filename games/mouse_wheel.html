@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>躲避球遊戲 - 信元老師電腦教學網</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans TC', '微軟正黑體', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .game-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pause-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+
+        .pause-btn:active {
+            transform: scale(0.95);
+        }
+
+        .game-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 30px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, #0a0a0a 0%, #1a1a2e 30%, #16213e 70%, #0f3460 100%);
+            overflow: hidden;
+        }
+
+        .stickman {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            width: 60px;
+            height: 80px;
+            transform: translateX(-50%);
+            z-index: 10;
+            transition: left 0.1s ease, background-image 0.1s ease;
+            background-image: url('../static/mouse-wheel/standing_right.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        /* 火柴人動畫狀態 */
+        .stickman.moving-left {
+            background-image: url('../static/mouse-wheel/moving_left.png');
+            animation: walkLeft 0.8s infinite;
+        }
+
+        .stickman.moving-right {
+            background-image: url('../static/mouse-wheel/moving_right.png');
+            animation: walkRight 0.8s infinite;
+        }
+
+        .stickman.standing-left {
+            background-image: url('../static/mouse-wheel/standing_left.png');
+        }
+
+        .stickman.standing-right {
+            background-image: url('../static/mouse-wheel/standing_right.png');
+        }
+
+        /* 行走動畫 */
+        @keyframes walkLeft {
+            0% { background-image: url('../static/mouse-wheel/moving_left.png'); }
+            25% { background-image: url('../static/mouse-wheel/moving_left (2).png'); }
+            50% { background-image: url('../static/mouse-wheel/moving_left (3).png'); }
+            75% { background-image: url('../static/mouse-wheel/moving_left (4).png'); }
+            100% { background-image: url('../static/mouse-wheel/moving_left (5).png'); }
+        }
+
+        @keyframes walkRight {
+            0% { background-image: url('../static/mouse-wheel/moving_right.png'); }
+            25% { background-image: url('../static/mouse-wheel/moving_right (2).png'); }
+            50% { background-image: url('../static/mouse-wheel/moving_right (3).png'); }
+            75% { background-image: url('../static/mouse-wheel/moving_right (4).png'); }
+            100% { background-image: url('../static/mouse-wheel/moving_right (5).png'); }
+        }
+
+        /* 調試模式：顯示碰撞區域邊框 */
+        .debug-mode .stickman::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 60px;
+            border: 3px solid red;
+            background: transparent;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        /* 調試模式：顯示角落檢測區域 */
+        .debug-mode::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 100vh;
+            background: rgba(255, 0, 0, 0.1);
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .debug-mode::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 50px;
+            height: 100vh;
+            background: rgba(255, 0, 0, 0.1);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* 調試模式：顯示球的碰撞箱 */
+        .debug-mode .ball::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border: 2px solid yellow;
+            background: rgba(255, 255, 0, 0.1);
+            pointer-events: none;
+            z-index: 25;
+            box-sizing: border-box;
+            border-radius: 50%;
+        }
+
+        .ball {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            line-height: 1.1;
+            text-align: center;
+            user-select: none;
+            pointer-events: none;
+            border: 3px solid;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        /* 九種不同設計的球 */
+        .ball.type1 {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, #ff0080, #ff4080);
+            border-color: #ff0080;
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
+        }
+
+        .ball.type2 {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(45deg, #00ffff, #40ffff);
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .ball.type3 {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(45deg, #8000ff, #a040ff);
+            border-color: #8000ff;
+            box-shadow: 0 0 20px rgba(128, 0, 255, 0.5);
+        }
+
+        .ball.type4 {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(45deg, #ff8000, #ffa040);
+            border-color: #ff8000;
+            box-shadow: 0 0 20px rgba(255, 128, 0, 0.5);
+        }
+
+        .ball.type5 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #00ff80, #40ffa0);
+            border-color: #00ff80;
+            box-shadow: 0 0 20px rgba(0, 255, 128, 0.5);
+        }
+
+        .ball.type6 {
+            width: 220px;
+            height: 220px;
+            background: linear-gradient(45deg, #ff4080, #ff80a0);
+            border-color: #ff4080;
+            box-shadow: 0 0 20px rgba(255, 64, 128, 0.5);
+        }
+
+        .ball.type7 {
+            width: 240px;
+            height: 240px;
+            background: linear-gradient(45deg, #4080ff, #80a0ff);
+            border-color: #4080ff;
+            box-shadow: 0 0 20px rgba(64, 128, 255, 0.5);
+        }
+
+        .ball.type8 {
+            width: 260px;
+            height: 260px;
+            background: linear-gradient(45deg, #ff8040, #ffa080);
+            border-color: #ff8040;
+            box-shadow: 0 0 20px rgba(255, 128, 64, 0.5);
+        }
+
+        .ball.type9 {
+            width: 280px;
+            height: 280px;
+            background: linear-gradient(45deg, #80ff40, #a0ff80);
+            border-color: #80ff40;
+            box-shadow: 0 0 20px rgba(128, 255, 64, 0.5);
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-top: 4px solid #00ffff;
+            box-shadow: 0 -4px 20px rgba(0, 255, 255, 0.3);
+            z-index: 1;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 200;
+            display: none;
+        }
+
+        .game-over h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .game-stats {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-actions .btn {
+            min-width: 120px;
+        }
+
+        .instructions-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .instructions-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: left;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .instructions-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .instructions-text {
+            color: #555;
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .instructions-text p {
+            margin-bottom: 10px;
+        }
+
+        .instructions-text strong {
+            color: #333;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .back-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .warning {
+            color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <a href="#" class="back-btn" onclick="handleBackClick(event)">返回</a>
+
+    <div class="game-container">
+        <!-- 遊戲說明彈窗 -->
+        <div id="gameInstructions" class="instructions-overlay">
+            <div class="instructions-content">
+                <h2>🎮 躲避球遊戲</h2>
+                <div class="instructions-text">
+                    <p>🎯 <strong>遊戲目標：</strong>操控火柴人躲避掉落下來的球，挑戰個人最高存活秒數</p>
+                    <p>🖱️ <strong>操控方式：</strong></p>
+                    <ul>
+                        <li>滾輪向下滾動 = 火柴人往右走</li>
+                        <li>滾輪向上滾動 = 火柴人往左走</li>
+                        <li>空白鍵 = 暫停/繼續遊戲</li>
+                        <li>ESC鍵 = 強制結束遊戲</li>
+                        <li>D鍵 = 切換調試模式（顯示碰撞區域）</li>
+                    </ul>
+                    <p>⚽ <strong>遊戲說明：</strong></p>
+                    <ul>
+                        <li>天空中會掉落大大小小的球</li>
+                        <li>球相撞或落地後會反射</li>
+                        <li>火柴人不能被球擊中</li>
+                        <li>存活時間越長分數越高</li>
+                    </ul>
+                    <p>⚠️ <strong>注意：</strong>球的速度會隨著時間逐漸加快！</p>
+                </div>
+                <button class="btn btn-primary" onclick="startGameWithInstructions()">我知道了，開始遊戲！</button>
+            </div>
+        </div>
+
+        <div class="game-header">
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">存活時間</div>
+                    <div class="info-value" id="survivalTime">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">最高秒數</div>
+                    <div class="info-value" id="bestTime">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">球數</div>
+                    <div class="info-value" id="ballCount">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="pause-btn" id="pauseBtn" onclick="togglePause()">⏸️</button>
+
+        <div class="game-area" id="gameArea">
+            <div class="stickman" id="stickman"></div>
+            <div class="ground"></div>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>遊戲結束！</h2>
+        <div class="final-score" id="finalScore">0秒</div>
+        <div class="game-stats" id="gameStats">
+            <div class="stat-item">
+                <span class="stat-label">個人最高紀錄：</span>
+                <span class="stat-value" id="finalBestTime">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">存活時間：</span>
+                <span class="stat-value" id="finalSurvivalTime">0</span>
+            </div>
+        </div>
+        
+        <div class="game-actions">
+            <button class="btn" onclick="restartGame()">再玩一次</button>
+            <button class="btn" onclick="handleBackClick(event)">返回</button>
+        </div>
+    </div>
+
+    <script>
+        class MouseWheelGame {
+            constructor() {
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.survivalTime = 0;
+                this.bestTime = 0;
+                this.ballCount = 0;
+                this.gameInterval = null;
+                this.timeInterval = null;
+                this.balls = [];
+                this.stickmanX = window.innerWidth / 2;
+                this.stickmanSpeed = 30; // 提高人物移動速度
+                this.ballSpawnRate = 2000; // 每2秒生成一個球
+                this.lastBallSpawn = 0;
+                this.gameSpeed = 1;
+                this.initialBallCount = 9; // 初始球數
+                this.debugMode = false; // 調試模式
+                this.userId = null; // 添加用戶ID
+                this.pausedElapsedTime = 0; // 暫停時累計的已過時間
+                
+                // 火柴人動畫狀態
+                this.stickmanDirection = 'right'; // 當前朝向
+                this.stickmanMoving = false; // 是否正在移動
+                this.lastMoveTime = 0; // 上次移動時間
+                this.imagesPreloaded = false; // 圖片是否已預載
+                
+                // 角落懲罰系統
+                this.cornerThreshold = 50; // 距離邊界50px內算角落
+                this.cornerTime = 0; // 在角落的時間
+                this.maxCornerTime = 1.5; // 最大允許在角落1.5秒
+                this.lastCornerCheck = 0; // 上次檢查角落的時間
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.loadUserInfo();
+                // Share版本：移除ClassID初始化
+                this.preloadImages(); // 預載圖片
+                this.loadBestTime(); // 載入最高秒數
+                
+                console.log('躲避球遊戲初始化完成');
+            }
+            
+            async loadUserInfo() {
+                try {
+                    const response = await fetch('/api/current-user');
+                    const userInfo = await response.json();
+                    this.userId = userInfo.user_id;
+                    console.log(`當前用戶ID: ${this.userId}`);
+                    
+                    // 清理舊的localStorage數據
+                    this.cleanupOldStorage();
+                } catch (error) {
+                    console.log('無法獲取用戶信息，使用默認設置');
+                    this.userId = 'anonymous';
+                }
+            }
+            
+            cleanupOldStorage() {
+                // 清理舊的全局localStorage鍵值
+                const oldKey = 'dodgeball_best_time';
+                if (localStorage.getItem(oldKey)) {
+                    console.log('清理舊的localStorage數據');
+                    localStorage.removeItem(oldKey);
+                }
+                
+                // Share版本：移除class_id清理
+            }
+            
+            getStorageKey() {
+                return `dodgeball_best_time_${this.userId}`;
+            }
+            
+            // Share版本：移除ClassID相關函數
+
+            initializeElements() {
+                this.survivalTimeElement = document.getElementById('survivalTime');
+                this.bestTimeElement = document.getElementById('bestTime');
+                this.ballCountElement = document.getElementById('ballCount');
+                this.gameArea = document.getElementById('gameArea');
+                this.gameOver = document.getElementById('gameOver');
+                this.stickman = document.getElementById('stickman');
+                
+                console.log('元素初始化完成');
+            }
+
+            loadBestTime() {
+                const savedBestTime = localStorage.getItem(this.getStorageKey());
+                if (savedBestTime) {
+                    this.bestTime = parseFloat(savedBestTime);
+                    this.updateDisplay();
+                }
+                
+                // Share版本：不從伺服器載入最佳記錄
+            }
+            
+            // Share版本：不從伺服器載入最佳記錄
+
+            saveBestTime() {
+                if (this.survivalTime > this.bestTime) {
+                    this.bestTime = this.survivalTime;
+                    localStorage.setItem(this.getStorageKey(), this.bestTime.toString());
+                    console.log(`新紀錄！最高秒數：${this.bestTime.toFixed(2)}秒`);
+                }
+            }
+
+            preloadImages() {
+                const imagePaths = [
+                    '../static/mouse-wheel/standing_left.png',
+                    '../static/mouse-wheel/standing_right.png',
+                    '../static/mouse-wheel/moving_left.png',
+                    '../static/mouse-wheel/moving_left (2).png',
+                    '../static/mouse-wheel/moving_left (3).png',
+                    '../static/mouse-wheel/moving_left (4).png',
+                    '../static/mouse-wheel/moving_left (5).png',
+                    '../static/mouse-wheel/moving_right.png',
+                    '../static/mouse-wheel/moving_right (2).png',
+                    '../static/mouse-wheel/moving_right (3).png',
+                    '../static/mouse-wheel/moving_right (4).png',
+                    '../static/mouse-wheel/moving_right (5).png'
+                ];
+                
+                let loadedCount = 0;
+                const totalImages = imagePaths.length;
+                
+                imagePaths.forEach(path => {
+                    const img = new Image();
+                    img.onload = () => {
+                        loadedCount++;
+                        if (loadedCount === totalImages) {
+                            this.imagesPreloaded = true;
+                            console.log('所有火柴人圖片已預載完成');
+                        }
+                    };
+                    img.onerror = () => {
+                        console.warn('圖片載入失敗:', path);
+                        loadedCount++;
+                        if (loadedCount === totalImages) {
+                            this.imagesPreloaded = true;
+                        }
+                    };
+                    img.src = path;
+                });
+            }
+
+            setupEventListeners() {
+                // 滑鼠滾輪事件
+                document.addEventListener('wheel', (e) => this.handleWheel(e));
+                
+                // 防止頁面滾動
+                document.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+                
+                // 鍵盤事件處理
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.isPlaying) {
+                        console.log('ESC鍵按下，強制結束遊戲');
+                        this.endGame();
+                    } else if (e.key === ' ' && this.isPlaying) {
+                        e.preventDefault(); // 防止頁面滾動
+                        console.log('空白鍵按下，切換暫停狀態');
+                        this.togglePause();
+                    } else if (e.key === 'd' || e.key === 'D') {
+                        // 按D鍵切換調試模式
+                        this.toggleDebugMode();
+                    }
+                });
+                
+                console.log('事件監聽器設置完成');
+            }
+
+            startGame() {
+                if (this.isPlaying) return;
+                
+                console.log('開始遊戲...');
+                this.isPlaying = true;
+                this.survivalTime = 0;
+                this.ballCount = 0;
+                this.balls = [];
+                this.stickmanX = window.innerWidth / 2;
+                this.gameSpeed = 1;
+                this.ballSpawnRate = 2000;
+                this.lastBallSpawn = 0;
+                this.initialBallCount = 9; // 初始球數
+                this.pausedElapsedTime = 0; // 重置暫停累計時間
+                
+                // 初始化角落懲罰系統
+                this.cornerTime = 0;
+                this.lastCornerCheck = Date.now();
+                
+                this.updateDisplay();
+                this.updateStickmanPosition();
+                
+                const instructionsElement = document.getElementById('gameInstructions');
+                if (instructionsElement) {
+                    instructionsElement.style.display = 'none';
+                }
+                
+                this.startTimer();
+                this.startGameLoop();
+                
+                // 遊戲開始時生成初始球
+                this.spawnInitialBalls();
+                
+                console.log('遊戲已開始');
+            }
+
+            startTimer() {
+                this.startTimestamp = Date.now();
+                this._speedBoostAppliedAt = new Set();
+                this.timeInterval = setInterval(() => {
+                    const elapsedMs = Date.now() - this.startTimestamp;
+                    this.survivalTime = elapsedMs / 1000;
+                    this.updateDisplay();
+                    
+                    const wholeSeconds = Math.floor(this.survivalTime);
+                    if (wholeSeconds > 0 && wholeSeconds % 30 === 0 && !this._speedBoostAppliedAt.has(wholeSeconds)) {
+                        this._speedBoostAppliedAt.add(wholeSeconds);
+                        this.gameSpeed += 0.2;
+                        this.ballSpawnRate = Math.max(500, this.ballSpawnRate - 200);
+                        console.log(`遊戲速度提升！當前速度: ${this.gameSpeed.toFixed(1)}x`);
+                    }
+                }, 50);
+            }
+
+            startGameLoop() {
+                this.gameInterval = setInterval(() => {
+                    if (!this.isPlaying || this.isPaused) return;
+                    
+                    this.updateBalls();
+                    this.checkCollisions();
+                    this.spawnBalls();
+                    this.updateStickmanAnimation(); // 更新火柴人動畫
+                    this.checkCornerPenalty(); // 檢查角落懲罰
+                }, 16); // 約60FPS
+            }
+
+            handleWheel(e) {
+                if (!this.isPlaying || this.isPaused) return;
+                
+                e.preventDefault();
+                
+                // 記錄移動時間和方向
+                this.lastMoveTime = Date.now();
+                this.stickmanMoving = true;
+                
+                // 滾輪向下 = 往右走
+                if (e.deltaY > 0) {
+                    this.stickmanX += this.stickmanSpeed;
+                    this.stickmanDirection = 'right';
+                }
+                // 滾輪向上 = 往左走
+                else if (e.deltaY < 0) {
+                    this.stickmanX -= this.stickmanSpeed;
+                    this.stickmanDirection = 'left';
+                }
+                
+                // 限制火柴人在遊戲區域內
+                const stickmanWidth = 60; // 更新為新的寬度
+                this.stickmanX = Math.max(stickmanWidth / 2, Math.min(window.innerWidth - stickmanWidth / 2, this.stickmanX));
+                
+                this.updateStickmanPosition();
+                this.updateStickmanAnimation();
+            }
+
+            updateStickmanPosition() {
+                this.stickman.style.left = this.stickmanX + 'px';
+            }
+
+            updateStickmanAnimation() {
+                // 如果遊戲結束或圖片還沒預載完成，不進行動畫切換
+                if (!this.isPlaying || !this.imagesPreloaded) {
+                    return;
+                }
+                
+                // 檢查是否應該停止移動動畫
+                const now = Date.now();
+                if (now - this.lastMoveTime > 300) { // 延長到300ms後停止移動動畫
+                    this.stickmanMoving = false;
+                }
+                
+                // 根據狀態設置對應的動畫類別
+                if (this.stickmanMoving) {
+                    // 移動時：先清除所有類別，再添加對應的移動動畫
+                    this.stickman.className = 'stickman';
+                    if (this.stickmanDirection === 'left') {
+                        this.stickman.classList.add('moving-left');
+                    } else {
+                        this.stickman.classList.add('moving-right');
+                    }
+                } else {
+                    // 站立時：先清除所有類別，再添加對應的站立動畫
+                    this.stickman.className = 'stickman';
+                    if (this.stickmanDirection === 'left') {
+                        this.stickman.classList.add('standing-left');
+                    } else {
+                        this.stickman.classList.add('standing-right');
+                    }
+                }
+            }
+
+            checkCornerPenalty() {
+                const now = Date.now();
+                const deltaTime = (now - this.lastCornerCheck) / 1000; // 轉換為秒
+                this.lastCornerCheck = now;
+                
+                // 檢查是否在角落
+                const isInLeftCorner = this.stickmanX <= this.cornerThreshold;
+                const isInRightCorner = this.stickmanX >= window.innerWidth - this.cornerThreshold;
+                const isInCorner = isInLeftCorner || isInRightCorner;
+                
+                if (isInCorner) {
+                    // 在角落，累計時間
+                    this.cornerTime += deltaTime;
+                    
+                    // 調試信息
+                    if (this.cornerTime > 0.5 && this.cornerTime < 0.6) {
+                        console.log(`角落檢測：位置=${this.stickmanX.toFixed(1)}, 角落時間=${this.cornerTime.toFixed(2)}秒`);
+                    }
+                    
+                    // 如果超過最大允許時間，執行懲罰
+                    if (this.cornerTime >= this.maxCornerTime) {
+                        this.applyCornerPenalty();
+                    }
+                } else {
+                    // 不在角落，重置時間
+                    if (this.cornerTime > 0) {
+                        console.log(`離開角落，重置時間。之前角落時間：${this.cornerTime.toFixed(2)}秒`);
+                    }
+                    this.cornerTime = 0;
+                }
+            }
+
+            applyCornerPenalty() {
+                // 將火柴人推向中間
+                const centerX = window.innerWidth / 2;
+                const pushDistance = 150; // 每次推動150px
+                
+                if (this.stickmanX < centerX) {
+                    // 在左邊，向右推
+                    this.stickmanX = Math.min(this.stickmanX + pushDistance, centerX);
+                } else {
+                    // 在右邊，向左推
+                    this.stickmanX = Math.max(this.stickmanX - pushDistance, centerX);
+                }
+                
+                // 更新位置
+                this.updateStickmanPosition();
+                
+                // 重置角落時間
+                this.cornerTime = 0;
+                
+                console.log(`角落懲罰：火柴人被推向中間，新位置: ${this.stickmanX.toFixed(1)}`);
+            }
+
+            spawnBalls() {
+                // 不再增加球：當前球數達到初始值則不再生成
+                if (this.balls.length >= this.initialBallCount) return;
+                const now = Date.now();
+                if (now - this.lastBallSpawn > this.ballSpawnRate) {
+                    this.createBall();
+                    this.lastBallSpawn = now;
+                }
+            }
+
+            spawnInitialBalls() {
+                // 生成九種不同類型的球
+                const types = ['type1', 'type2', 'type3', 'type4', 'type5', 'type6', 'type7', 'type8', 'type9'];
+                const sizeMap = {
+                    'type1': 120, 'type2': 140, 'type3': 160, 'type4': 180, 'type5': 200,
+                    'type6': 220, 'type7': 240, 'type8': 260, 'type9': 280
+                };
+                
+                for (let i = 0; i < this.initialBallCount; i++) {
+                    const type = types[i % types.length]; // 循環使用九種類型
+                    const size = sizeMap[type];
+                    this.createBall(type, -(i * 30 + size));
+                }
+                console.log(`初始${this.initialBallCount}顆球（九種不同設計）已生成`);
+            }
+
+            createBall(forcedType = null, forcedY = null) {
+                const ball = document.createElement('div');
+                ball.className = 'ball';
+                
+                // 隨機選擇球的類型（1-9）
+                const types = ['type1', 'type2', 'type3', 'type4', 'type5', 'type6', 'type7', 'type8', 'type9'];
+                const type = forcedType || types[Math.floor(Math.random() * types.length)];
+                ball.classList.add(type);
+                
+                // 根據類型設定尺寸
+                const sizeMap = {
+                    'type1': 120, 'type2': 140, 'type3': 160, 'type4': 180, 'type5': 200,
+                    'type6': 220, 'type7': 240, 'type8': 260, 'type9': 280
+                };
+                const tempWidth = sizeMap[type];
+                
+                // 隨機位置和速度
+                const x = Math.random() * Math.max(1, (window.innerWidth - tempWidth));
+                const y = forcedY !== null ? forcedY : -tempWidth * 1.8;
+                
+                // 所有球的速度都在5~10之間隨機化
+                const speed = 5 + Math.random() * 5;
+                const angle = (Math.random() - 0.5) * Math.PI * 0.8;
+                const vx = Math.cos(angle) * speed * this.gameSpeed;
+                const vy = Math.sin(angle) * speed * this.gameSpeed;
+                
+                ball.style.left = x + 'px';
+                ball.style.top = y + 'px';
+                
+                this.gameArea.appendChild(ball);
+                
+                const ballData = {
+                    element: ball,
+                    x: x,
+                    y: y,
+                    vx: vx,
+                    vy: vy,
+                    type: type,
+                    width: tempWidth,
+                    height: tempWidth
+                };
+                
+                this.balls.push(ballData);
+                this.ballCount++;
+                this.updateDisplay();
+                
+                console.log(`球已生成: ${type}, 位置: (${x}, ${y})`);
+            }
+
+            updateBalls() {
+                for (let i = this.balls.length - 1; i >= 0; i--) {
+                    const ball = this.balls[i];
+                    
+                    // 更新位置
+                    ball.x += ball.vx;
+                    ball.y += ball.vy;
+                    
+                    // 關閉重力：保持固定垂直速度（不符合自由落體）
+                    // 不再累加重力，加速由初始 vy 決定
+                    
+                    // 邊界碰撞檢測（左右、上）
+                    if (ball.x <= 0 || ball.x >= window.innerWidth - ball.width) {
+                        ball.vx *= -0.8; // 反彈，但損失一些能量
+                        ball.x = Math.max(0, Math.min(window.innerWidth - ball.width, ball.x));
+                    }
+                    if (ball.y <= 0) {
+                        ball.y = 0;
+                        ball.vy = Math.abs(ball.vy); // 上邊界反彈向下
+                    }
+                    
+                    // 地面碰撞檢測
+                    if (ball.y >= window.innerHeight - ball.height - 100) { // 100是地面高度
+                        ball.y = window.innerHeight - ball.height - 100;
+                        // 完全彈性反彈：不減速，僅翻轉方向
+                        ball.vy = -Math.abs(ball.vy);
+                        // 不施加地面摩擦，保持水平速度不變
+                    }
+                    
+                    // 球與球之間的碰撞檢測（完全彈性 + 重疊分離）
+                    for (let j = i + 1; j < this.balls.length; j++) {
+                        const otherBall = this.balls[j];
+                        const dx = (ball.x + ball.width/2) - (otherBall.x + otherBall.width/2);
+                        const dy = (ball.y + ball.height/2) - (otherBall.y + otherBall.height/2);
+                        const distance = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+                        const minDistance = (ball.width + otherBall.width) / 2;
+
+                        if (distance < minDistance) {
+                            const nx = dx / distance;
+                            const ny = dy / distance;
+
+                            const rvx = ball.vx - otherBall.vx;
+                            const rvy = ball.vy - otherBall.vy;
+                            const velAlongNormal = rvx * nx + rvy * ny;
+
+                            // 分離重疊
+                            const overlap = (minDistance - distance);
+                            const separation = overlap / 2;
+                            ball.x += nx * separation;
+                            ball.y += ny * separation;
+                            otherBall.x -= nx * separation;
+                            otherBall.y -= ny * separation;
+
+                            if (velAlongNormal < 0) {
+                                // 完全彈性碰撞（不減速）
+                                const restitution = 1.0;
+                                const impulse = -(1 + restitution) * velAlongNormal / 2; // 等質量
+
+                                const impulseX = impulse * nx;
+                                const impulseY = impulse * ny;
+
+                                ball.vx += impulseX;
+                                ball.vy += impulseY;
+                                otherBall.vx -= impulseX;
+                                otherBall.vy -= impulseY;
+                                
+                                // 確保碰撞後保持最小速度
+                                const minSpeed = 5.0;
+                                const maxSpeed = 10.0;
+                                const speed1 = Math.hypot(ball.vx, ball.vy);
+                                const speed2 = Math.hypot(otherBall.vx, otherBall.vy);
+                                
+                                if (speed1 < minSpeed) {
+                                    const dir1 = Math.atan2(ball.vy, ball.vx);
+                                    ball.vx = Math.cos(dir1) * minSpeed;
+                                    ball.vy = Math.sin(dir1) * minSpeed;
+                                } else if (speed1 > maxSpeed) {
+                                    const dir1 = Math.atan2(ball.vy, ball.vx);
+                                    ball.vx = Math.cos(dir1) * maxSpeed;
+                                    ball.vy = Math.sin(dir1) * maxSpeed;
+                                }
+                                
+                                if (speed2 < minSpeed) {
+                                    const dir2 = Math.atan2(otherBall.vy, otherBall.vx);
+                                    otherBall.vx = Math.cos(dir2) * minSpeed;
+                                    otherBall.vy = Math.sin(dir2) * minSpeed;
+                                } else if (speed2 > maxSpeed) {
+                                    const dir2 = Math.atan2(otherBall.vy, otherBall.vx);
+                                    otherBall.vx = Math.cos(dir2) * maxSpeed;
+                                    otherBall.vy = Math.sin(dir2) * maxSpeed;
+                                }
+                            }
+                        }
+                    }
+
+                    // 避免水平飛行：若角度在 ±20° 內，調整為最小仰角但保持速度與方向
+                    const speed = Math.hypot(ball.vx, ball.vy);
+                    if (speed > 0) {
+                        const minAngle = Math.PI * 20 / 180; // 20 度
+                        const angle = Math.atan2(ball.vy, ball.vx);
+                        if (Math.abs(angle) < minAngle) {
+                            const dirX = ball.vx >= 0 ? 1 : -1;
+                            const dirY = ball.vy === 0 ? (Math.random() < 0.5 ? -1 : 1) : (ball.vy >= 0 ? 1 : -1);
+                            ball.vx = dirX * Math.cos(minAngle) * speed;
+                            ball.vy = dirY * Math.sin(minAngle) * speed;
+                        }
+                    }
+                    
+                    // 額外檢查：避免純水平運動（vy接近0）
+                    if (Math.abs(ball.vy) < 0.5) {
+                        const speed = Math.hypot(ball.vx, ball.vy);
+                        if (speed > 0) {
+                            const minVerticalSpeed = 2.0; // 最小垂直速度
+                            const dirY = Math.random() < 0.5 ? -1 : 1; // 隨機上下方向
+                            ball.vy = dirY * minVerticalSpeed;
+                            ball.vx = ball.vx * 0.8; // 稍微減慢水平速度
+                        }
+                    }
+                    
+                    // 更新DOM位置
+                    ball.element.style.left = ball.x + 'px';
+                    ball.element.style.top = ball.y + 'px';
+                    
+                    // 保留在場上：不再移除超出螢幕的球（已由邊界反彈處理）
+                }
+            }
+
+            removeBall(index) {
+                const ball = this.balls[index];
+                if (ball.element.parentNode) {
+                    ball.element.parentNode.removeChild(ball.element);
+                }
+                this.balls.splice(index, 1);
+            }
+
+            checkCollisions() {
+                // 調整火柴人的碰撞區域：左右各5px，總高度60px
+                const stickmanRect = {
+                    left: this.stickmanX - 5,     // 左右各5px
+                    right: this.stickmanX + 5,   // 左右各5px
+                    top: window.innerHeight - 160, // 總高度60px，從底部100px開始
+                    bottom: window.innerHeight - 100 // 火柴人底部位置
+                };
+                
+                for (let i = this.balls.length - 1; i >= 0; i--) {
+                    const ball = this.balls[i];
+                    
+                    // 圓形碰撞檢測
+                    const ballCenterX = ball.x + ball.width / 2;
+                    const ballCenterY = ball.y + ball.height / 2;
+                    const ballRadius = ball.width / 2;
+                    
+                    // 檢查球是否與火柴人矩形碰撞
+                    const closestX = Math.max(stickmanRect.left, Math.min(ballCenterX, stickmanRect.right));
+                    const closestY = Math.max(stickmanRect.top, Math.min(ballCenterY, stickmanRect.bottom));
+                    
+                    const distanceX = ballCenterX - closestX;
+                    const distanceY = ballCenterY - closestY;
+                    const distanceSquared = distanceX * distanceX + distanceY * distanceY;
+                    
+                    // 如果距離小於球的半徑，則發生碰撞
+                    if (distanceSquared < ballRadius * ballRadius) {
+                        console.log(`火柴人被球擊中！球半徑: ${ballRadius.toFixed(1)}, 距離: ${Math.sqrt(distanceSquared).toFixed(1)}`);
+                        this.endGame();
+                        return;
+                    }
+                }
+            }
+
+            updateDisplay() {
+                this.survivalTimeElement.textContent = this.survivalTime.toFixed(2);
+                this.bestTimeElement.textContent = this.bestTime.toFixed(2);
+                this.ballCountElement.textContent = this.ballCount;
+                
+                // 最後30秒時間顯示警告效果
+                if (this.survivalTime >= 30 && this.survivalTime % 30 >= 25) {
+                    this.survivalTimeElement.classList.add('warning');
+                } else {
+                    this.survivalTimeElement.classList.remove('warning');
+                }
+            }
+
+            endGame() {
+                this.isPlaying = false;
+                
+                clearInterval(this.timeInterval);
+                clearInterval(this.gameInterval);
+                
+                // 停止火柴人動畫，保持最後的狀態
+                this.stickmanMoving = false;
+                this.stickman.className = 'stickman';
+                if (this.stickmanDirection === 'left') {
+                    this.stickman.classList.add('standing-left');
+                } else {
+                    this.stickman.classList.add('standing-right');
+                }
+                
+                // 停止所有球的移動，讓它們定格在當前位置
+                this.balls.forEach(ball => {
+                    ball.element.style.animationPlayState = 'paused';
+                    ball.element.style.transition = 'none';
+                });
+                
+                // 更新最終統計
+                document.getElementById('finalScore').textContent = this.survivalTime.toFixed(2) + '秒';
+                document.getElementById('finalSurvivalTime').textContent = this.survivalTime.toFixed(2) + '秒';
+                document.getElementById('finalBestTime').textContent = this.bestTime.toFixed(2) + '秒';
+                
+                // 保存最高秒數
+                this.saveBestTime();
+                
+                // Share版本：分數計算完成，不提交到排行榜
+                
+                this.gameOver.style.display = 'block';
+                
+                console.log(`遊戲結束！存活時間：${this.survivalTime.toFixed(2)}秒`);
+            }
+
+            // Share版本：不提交分數到排行榜，只計算和顯示分數
+
+            restartGame() {
+                // 清除所有球
+                this.balls.forEach(ball => {
+                    if (ball.element.parentNode) {
+                        ball.element.parentNode.removeChild(ball.element);
+                    }
+                });
+                this.balls = [];
+                
+                this.gameOver.style.display = 'none';
+                this.startGame();
+            }
+
+            pauseGame() {
+                if (!this.isPlaying || this.isPaused) return;
+                
+                this.isPaused = true;
+                clearInterval(this.timeInterval);
+                clearInterval(this.gameInterval);
+                
+                // 記錄暫停時已過去的時間，以便恢復時繼續計時
+                if (this.startTimestamp) {
+                    const elapsedMs = Date.now() - this.startTimestamp;
+                    this.pausedElapsedTime = (this.pausedElapsedTime || 0) + elapsedMs;
+                }
+                
+                // 更新暫停按鈕圖標
+                const pauseBtn = document.getElementById('pauseBtn');
+                if (pauseBtn) {
+                    pauseBtn.textContent = '▶️';
+                }
+                
+                console.log('遊戲已暫停');
+            }
+
+            resumeGame() {
+                if (!this.isPlaying || !this.isPaused) return;
+                
+                this.isPaused = false;
+                
+                // 調整開始時間戳，使計時器從暫停前的時間繼續
+                if (this.pausedElapsedTime) {
+                    this.startTimestamp = Date.now() - this.pausedElapsedTime;
+                } else {
+                    this.startTimestamp = Date.now();
+                }
+                
+                // 重新啟動計時器和遊戲循環
+                this._speedBoostAppliedAt = new Set();
+                this.timeInterval = setInterval(() => {
+                    const elapsedMs = Date.now() - this.startTimestamp;
+                    this.survivalTime = elapsedMs / 1000;
+                    this.updateDisplay();
+                    
+                    const wholeSeconds = Math.floor(this.survivalTime);
+                    if (wholeSeconds > 0 && wholeSeconds % 30 === 0 && !this._speedBoostAppliedAt.has(wholeSeconds)) {
+                        this._speedBoostAppliedAt.add(wholeSeconds);
+                        this.gameSpeed += 0.2;
+                        this.ballSpawnRate = Math.max(500, this.ballSpawnRate - 200);
+                        console.log(`遊戲速度提升！當前速度: ${this.gameSpeed.toFixed(1)}x`);
+                    }
+                }, 50);
+                
+                this.startGameLoop();
+                
+                // 更新暫停按鈕圖標
+                const pauseBtn = document.getElementById('pauseBtn');
+                if (pauseBtn) {
+                    pauseBtn.textContent = '⏸️';
+                }
+                
+                console.log('遊戲已恢復');
+            }
+
+            togglePause() {
+                if (this.isPaused) {
+                    this.resumeGame();
+                } else {
+                    this.pauseGame();
+                }
+            }
+
+            toggleDebugMode() {
+                this.debugMode = !this.debugMode;
+                if (this.debugMode) {
+                    document.body.classList.add('debug-mode');
+                    console.log('調試模式已開啟 - 按D鍵可關閉');
+                } else {
+                    document.body.classList.remove('debug-mode');
+                    console.log('調試模式已關閉 - 按D鍵可開啟');
+                }
+            }
+        }
+
+        // 全域變數
+        let game;
+
+        function startGameWithInstructions() {
+            const instructionsElement = document.getElementById('gameInstructions');
+            if (instructionsElement) {
+                instructionsElement.style.display = 'none';
+            }
+            
+            if (game) {
+                game.startGame();
+            }
+        }
+
+
+        function restartGame() {
+            if (game) {
+                game.restartGame();
+            }
+        }
+
+        // Share版本：移除viewLeaderboard函數
+
+        function handleBackClick(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            // Share版本：返回主介面
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/share/')) {
+                window.location.href = '/share';
+            } else {
+                // 如果不是Share版本，使用瀏覽器後退
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/';
+                }
+            }
+        }
+
+        function togglePause() {
+            if (game) {
+                game.togglePause();
+            }
+        }
+
+        // 初始化遊戲
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM載入完成，開始初始化滑鼠滾輪遊戲...');
+            game = new MouseWheelGame();
+            console.log('滑鼠滾輪遊戲實例創建完成:', game);
+            
+            // 確保遊戲說明彈窗在遊戲載入時顯示
+            const instructionsElement = document.getElementById('gameInstructions');
+            if (instructionsElement) {
+                instructionsElement.style.display = 'flex';
+                console.log('遊戲說明彈窗已顯示');
+            } else {
+                console.error('找不到遊戲說明彈窗元素');
+            }
+            
+            // 添加頁面可見性檢測
+            document.addEventListener('visibilitychange', () => {
+                if (game && game.isPlaying) {
+                    if (document.hidden) {
+                        // 頁面不可見時暫停遊戲
+                        console.log('頁面不可見，自動暫停遊戲');
+                        game.pauseGame();
+                    } else {
+                        // 頁面可見時恢復遊戲
+                        console.log('頁面可見，自動恢復遊戲');
+                        game.resumeGame();
+                    }
+                }
+            });
+            
+            console.log('滑鼠滾輪遊戲初始化完成');
+        });
+    </script>
+</body>
+</html>

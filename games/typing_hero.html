@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打字英雄 - 注音符號打字射擊遊戲</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        #gameFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="back-btn" onclick="goBack()">← 返回</button>
+        <iframe id="gameFrame" src="../static/games/typing-hero/index.html"></iframe>
+    </div>
+    
+    <script>
+        // 獲取URL參數
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // Share版本：返回主介面
+        function goBack() {
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/share/')) {
+                window.location.href = '/share';
+            } else {
+                // 如果不是Share版本，使用原有邏輯
+                const classId = getUrlParameter('class_id') || '301';
+                const role = '{{ request.session.get("role", "student") }}';
+                
+                if (role === 'teacher') {
+                    window.location.href = `/teacher/classroom?class_id=${classId}`;
+                } else {
+                    window.location.href = `/student/classroom?class_id=${classId}`;
+                }
+            }
+        }
+        
+        // 監聽iframe載入完成
+        document.getElementById('gameFrame').addEventListener('load', function() {
+            // 遊戲載入完成
+        });
+        
+        // 處理iframe內部的返回請求
+        window.addEventListener('message', function(event) {
+            console.log('收到iframe訊息:', event.data);
+            
+            if (event.data === 'goBack') {
+                goBack();
+            } else if (event.data && event.data.type === 'gameEnd') {
+                console.log('收到遊戲結束事件:', event.data);
+                // Share版本：分數計算完成，不提交到排行榜
+            }
+        });
+        
+        // Share版本：不提交分數到排行榜，只計算和顯示分數
+        function submitScoreToLeaderboard(score, playTime) {
+            // Share版本：此功能已移除
+            console.log('Share版本：分數計算完成，不提交到排行榜');
+        }
+        
+        // 顯示分數提交訊息
+        function showScoreSubmitMessage(message, type) {
+            // 創建提示元素
+            const messageEl = document.createElement('div');
+            messageEl.className = `score-submit-message ${type}`;
+            messageEl.textContent = message;
+            messageEl.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: bold;
+                z-index: 10000;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            // 根據類型設定背景色
+            if (type === 'success') {
+                messageEl.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+            } else {
+                messageEl.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+            }
+            
+            // 添加動畫樣式
+            if (!document.getElementById('scoreSubmitMessageStyle')) {
+                const style = document.createElement('style');
+                style.id = 'scoreSubmitMessageStyle';
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from { 
+                            transform: translateX(100%); 
+                            opacity: 0; 
+                        }
+                        to { 
+                            transform: translateX(0); 
+                            opacity: 1; 
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // 添加到頁面
+            document.body.appendChild(messageEl);
+            
+            // 3秒後自動移除
+            setTimeout(() => {
+                messageEl.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(() => {
+                    if (messageEl.parentNode) {
+                        messageEl.parentNode.removeChild(messageEl);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // 查看排行榜
+        // Share版本：移除viewLeaderboard函數
+    </script>
+</body>
+</html>
