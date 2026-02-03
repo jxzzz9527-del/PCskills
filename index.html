@@ -108,7 +108,7 @@
             line-height: 1.5;
         }
 
-        /* 開發者資訊 */
+        /* 開發者資訊（可收起） */
         .developer-info {
             position: fixed;
             bottom: 20px;
@@ -116,17 +116,60 @@
             background: #f5f5f5;
             border: 1px solid #d0d0d0;
             border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 0.85em;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
             z-index: 1000;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
+            overflow: hidden;
         }
 
         .developer-info:hover {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             border-color: #4a90e2;
             background: #ffffff;
+        }
+
+        .developer-info-toggle {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #2a2a2a;
+            font-size: 0.9em;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .developer-info.collapsed .developer-info-toggle {
+            padding: 12px 10px;
+            justify-content: center;
+        }
+
+        .developer-info.collapsed .developer-info-toggle .toggle-text {
+            display: none;
+        }
+
+        .developer-info-toggle .toggle-arrow {
+            font-size: 0.8em;
+            transition: transform 0.25s ease;
+        }
+
+        .developer-info.collapsed .developer-info-toggle .toggle-arrow::before {
+            content: '◀';
+        }
+
+        .developer-info:not(.collapsed) .developer-info-toggle .toggle-arrow::before {
+            content: '▶';
+        }
+
+        .developer-info-detail {
+            padding: 0 16px 12px 16px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .developer-info.collapsed .developer-info-detail {
+            display: none;
         }
 
         .developer-info .name {
@@ -162,8 +205,10 @@
             .developer-info {
                 bottom: 10px;
                 right: 10px;
-                padding: 10px 14px;
-                font-size: 0.8em;
+            }
+            .developer-info-toggle {
+                padding: 8px 12px;
+                font-size: 0.85em;
             }
         }
     </style>
@@ -177,63 +222,63 @@
 
         <div class="games-grid">
             <!-- 第一排：接水果、搬米、打殭屍、躲避球 -->
-            <a href="/share/games/mouse_move.html" class="game-card">
+            <a href="games/mouse_move.html" class="game-card">
                 <span class="game-icon">🍎</span>
                 <div class="game-title">接水果遊戲</div>
                 <div class="game-description">使用滑鼠移動籃子接住水果</div>
             </a>
 
-            <a href="/share/games/mouse_drag.html" class="game-card">
+            <a href="games/mouse_drag.html" class="game-card">
                 <span class="game-icon">🛒</span>
                 <div class="game-title">搬米遊戲</div>
                 <div class="game-description">拖曳米袋到正確位置</div>
             </a>
 
-            <a href="/share/games/mouse_click.html" class="game-card">
+            <a href="games/mouse_click.html" class="game-card">
                 <span class="game-icon">🧟</span>
                 <div class="game-title">打殭屍遊戲</div>
                 <div class="game-description">使用滑鼠點擊消滅殭屍</div>
             </a>
 
-            <a href="/share/games/mouse_wheel.html" class="game-card">
+            <a href="games/mouse_wheel.html" class="game-card">
                 <span class="game-icon">⚽</span>
                 <div class="game-title">躲避球遊戲</div>
                 <div class="game-description">使用滾輪控制火柴人躲避球</div>
             </a>
 
             <!-- 第二排：鍵盤打字左、中、右、全 -->
-            <a href="/share/games/bopomofo_typing_left.html" class="game-card">
+            <a href="games/bopomofo_typing_left.html" class="game-card">
                 <span class="game-icon">⌨️</span>
                 <div class="game-title">注音打字 - 左區</div>
                 <div class="game-description">練習左區注音符號打字</div>
             </a>
 
-            <a href="/share/games/bopomofo_typing_middle.html" class="game-card">
+            <a href="games/bopomofo_typing_middle.html" class="game-card">
                 <span class="game-icon">⌨️</span>
                 <div class="game-title">注音打字 - 中區</div>
                 <div class="game-description">練習中區注音符號打字</div>
             </a>
 
-            <a href="/share/games/bopomofo_typing_right.html" class="game-card">
+            <a href="games/bopomofo_typing_right.html" class="game-card">
                 <span class="game-icon">⌨️</span>
                 <div class="game-title">注音打字 - 右區</div>
                 <div class="game-description">練習右區注音符號打字</div>
             </a>
 
-            <a href="/share/games/bopomofo_typing.html" class="game-card">
+            <a href="games/bopomofo_typing.html" class="game-card">
                 <span class="game-icon">⌨️</span>
                 <div class="game-title">注音打字練習</div>
                 <div class="game-description">完整注音符號打字練習</div>
             </a>
 
             <!-- 第三排：打字英雄、複製貼上 -->
-            <a href="/share/games/typing_hero.html" class="game-card">
+            <a href="games/typing_hero.html" class="game-card">
                 <span class="game-icon">🎮</span>
                 <div class="game-title">打字英雄</div>
                 <div class="game-description">挑戰打字速度與準確度</div>
             </a>
 
-            <a href="/share/games/copy_paste_hero.html" class="game-card">
+            <a href="games/copy_paste_hero.html" class="game-card">
                 <span class="game-icon">📋</span>
                 <div class="game-title">複製&貼上</div>
                 <div class="game-description">練習複製貼上操作技巧</div>
@@ -241,14 +286,22 @@
         </div>
     </div>
 
-    <!-- 開發者資訊 -->
-    <div class="developer-info">
-        <div class="name">信元老師</div>
-        <div class="email">jxzzz9527@chc.edu.tw</div>
+    <!-- 開發者資訊（可收起） -->
+    <div class="developer-info collapsed" id="developerInfo">
+        <div class="developer-info-toggle" onclick="toggleDeveloperInfo()">
+            <span class="toggle-text">開發者資訊</span>
+            <span class="toggle-arrow"></span>
+        </div>
+        <div class="developer-info-detail">
+            <div class="name">信元老師</div>
+            <div class="email">jxzzz9527@chc.edu.tw</div>
+        </div>
     </div>
 
     <script>
-        // 移除返回按鈕相關功能
+        function toggleDeveloperInfo() {
+            document.getElementById('developerInfo').classList.toggle('collapsed');
+        }
     </script>
 </body>
 </html>

@@ -626,49 +626,9 @@ class CopyPasteHero {
         this.showStage('final');
     }
 
-    // 獲取並顯示個人最高分
-    async fetchAndDisplayPersonalBest(currentScore) {
-        try {
-            // 獲取個人最高分
-            const response = await fetch('/api/games/personal-best?game_type=copy_paste_hero');
-            const data = await response.json();
-            
-            let personalBest = 0;
-            if (data.status === 'success' && data.personal_best) {
-                personalBest = data.personal_best;
-            }
-            
-            // 更新個人最高分顯示
-            this.updatePersonalBestDisplay(currentScore, personalBest);
-            
-        } catch (error) {
-            console.log('獲取個人最高分失敗:', error);
-            // 如果獲取失敗，只顯示當前分數
-            this.updatePersonalBestDisplay(currentScore, 0);
-        }
-    }
-    
-    // 更新個人最高分顯示
-    updatePersonalBestDisplay(currentScore, personalBest) {
-        const personalBestElement = document.getElementById('personalBest');
-        if (personalBestElement) {
-            if (currentScore > personalBest) {
-                // 新紀錄！
-                personalBestElement.innerHTML = `
-                    <div style="color: #ffd700; font-weight: bold; font-size: 1.2em;">
-                        🎉 新紀錄！個人最高分: ${currentScore}
-                    </div>
-                `;
-            } else {
-                // 顯示個人最高分
-                personalBestElement.innerHTML = `
-                    <div style="color: #4CAF50; font-weight: bold;">
-                        個人最高分: ${personalBest}
-                    </div>
-                `;
-            }
-        }
-    }
+    // Share版本：已移除個人最高分功能（避免 file:// 下 CORS 錯誤）
+    fetchAndDisplayPersonalBest(currentScore) {}
+    updatePersonalBestDisplay(currentScore, personalBest) {}
 
     // 設置最終分數畫面的按鈕事件監聽器
     setupFinalScoreButtons() {

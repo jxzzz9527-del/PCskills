@@ -1064,9 +1064,14 @@
             if (event) {
                 event.preventDefault();
             }
-            // Share版本：返回主介面
             const currentPath = window.location.pathname;
-            if (currentPath.includes('/share/')) {
+            if (currentPath.includes('/PCskills/')) {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '../index.html';
+                }
+            } else if (currentPath.includes('/share/')) {
                 window.location.href = '/share';
             } else {
                 // 如果不是Share版本，使用原有邏輯
@@ -1076,7 +1081,7 @@
                     if (window.history.length > 1) {
                         window.history.back();
                     } else {
-                        window.location.href = '/student/classroom';
+                        window.location.href = '../index.html';
                     }
                 }
             }

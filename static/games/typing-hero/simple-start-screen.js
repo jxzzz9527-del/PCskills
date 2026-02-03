@@ -71,25 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('重新開始按鈕事件已設定');
         }
         
-        // 設定查看排行榜按鈕事件
-        const viewLeaderboardBtn = document.getElementById('viewLeaderboardBtn');
-        if (viewLeaderboardBtn) {
-            viewLeaderboardBtn.addEventListener('click', function() {
-                console.log('查看排行榜按鈕被點擊');
-                
-                // 檢查是否在iframe中
-                if (window.parent && window.parent !== window) {
-                    // 在iframe中，發送訊息給父視窗
-                    window.parent.postMessage('viewLeaderboard', '*');
-                } else {
-                    // 不在iframe中，直接跳轉到排行榜
-                    window.location.href = '/new-leaderboard?game_type=typing_hero&scope=class';
-                }
-            });
-            console.log('查看排行榜按鈕事件已設定');
-        }
+        // Share版本：已移除查看排行榜按鈕
         
-        // 設定返回教室按鈕事件
+        // 設定返回按鈕事件
         const backToMenuBtn = document.getElementById('backToMenuBtn');
         if (backToMenuBtn) {
             backToMenuBtn.addEventListener('click', function() {

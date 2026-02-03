@@ -124,18 +124,25 @@
         
         // Share版本：返回主介面
         function goBack() {
-            const currentPath = window.location.pathname;
-            if (currentPath.includes('/share/')) {
-                window.location.href = '/share';
-            } else {
-                // 如果不是Share版本，使用原有邏輯
-                const classId = getUrlParameter('class_id') || '301';
-                const role = '{{ request.session.get("role", "student") }}';
-                
-                if (role === 'teacher') {
-                    window.location.href = `/teacher/classroom?class_id=${classId}`;
+            const path = window.location.pathname;
+            const classId = getUrlParameter('class_id') || '301';
+            if (path.includes('/PCskills/')) {
+                if (window.history.length > 1) {
+                    window.history.back();
                 } else {
-                    window.location.href = `/student/classroom?class_id=${classId}`;
+                    window.location.href = '../index.html';
+                }
+            } else if (path.includes('/share/')) {
+                window.location.href = '/share';
+            } else if (path.includes('/teacher/')) {
+                window.location.href = '/teacher/classroom?class_id=' + classId;
+            } else if (path.includes('/student/')) {
+                window.location.href = '/student/classroom?class_id=' + classId;
+            } else {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '../index.html';
                 }
             }
         }

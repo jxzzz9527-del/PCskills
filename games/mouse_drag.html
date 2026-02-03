@@ -892,10 +892,33 @@
             }
         }
 
-                 function handleBackClick(event) {
-             event.preventDefault();
-             window.history.back();
-         }
+        function handleBackClick(event) {
+            event.preventDefault();
+            const path = window.location.pathname;
+            if (path.includes('/PCskills/')) {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '../index.html';
+                }
+            } else if (path.includes('/share/')) {
+                window.location.href = '/share';
+            } else if (path.includes('/teacher/')) {
+                window.location.href = '/teacher/classroom';
+            } else if (path.includes('/student/')) {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/student/games';
+                }
+            } else {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '../index.html';
+                }
+            }
+        }
          
          // Share版本：移除viewLeaderboard函數
          function viewLeaderboard() {

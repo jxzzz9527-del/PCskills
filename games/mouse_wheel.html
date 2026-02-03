@@ -613,16 +613,22 @@
             }
             
             async loadUserInfo() {
+                // file:// 或獨立部署時跳過 API（避免 CORS 錯誤）
+                const path = window.location.pathname;
+                const isStandalone = window.location.protocol === 'file:' || (!path.includes('/share/') && !path.includes('/teacher/') && !path.includes('/student/'));
+                if (isStandalone) {
+                    this.userId = 'anonymous';
+                    return;
+                }
                 try {
                     const response = await fetch('/api/current-user');
+                    if (!response.ok) throw new Error('API 回應異常');
                     const userInfo = await response.json();
                     this.userId = userInfo.user_id;
                     console.log(`當前用戶ID: ${this.userId}`);
-                    
-                    // 清理舊的localStorage數據
                     this.cleanupOldStorage();
                 } catch (error) {
-                    console.log('無法獲取用戶信息，使用默認設置');
+                    console.warn('無法獲取用戶信息（獨立部署時為正常）:', error);
                     this.userId = 'anonymous';
                 }
             }
@@ -715,11 +721,8 @@
             }
 
             setupEventListeners() {
-                // 滑鼠滾輪事件
-                document.addEventListener('wheel', (e) => this.handleWheel(e));
-                
-                // 防止頁面滾動
-                document.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+                // 滑鼠滾輪事件（passive: false 才能呼叫 preventDefault 防止頁面滾動）
+                document.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
                 
                 // 鍵盤事件處理
                 document.addEventListener('keydown', (e) => {
@@ -1339,16 +1342,21 @@
             if (event) {
                 event.preventDefault();
             }
-            // Share版本：返回主介面
             const currentPath = window.location.pathname;
-            if (currentPath.includes('/share/')) {
+            if (currentPath.includes('/PCskills/')) {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '../index.html';
+                }
+            } else if (currentPath.includes('/share/')) {
                 window.location.href = '/share';
             } else {
                 // 如果不是Share版本，使用瀏覽器後退
                 if (window.history.length > 1) {
                     window.history.back();
                 } else {
-                    window.location.href = '/';
+                    window.location.href = '../index.html';
                 }
             }
         }

@@ -529,15 +529,25 @@
             }
             
             async loadHighestScore() {
+                // file:// 或獨立部署時跳過 API（避免 CORS 錯誤）
+                const path = window.location.pathname;
+                const isStandalone = window.location.protocol === 'file:' || (!path.includes('/share/') && !path.includes('/teacher/') && !path.includes('/student/'));
+                if (isStandalone) {
+                    this.highestScore = 0;
+                    if (this.highestScoreElement) this.highestScoreElement.textContent = '0';
+                    return;
+                }
                 try {
                     const response = await fetch(`/api/games/highest-score?game_type=${this.gameType}`);
+                    if (!response.ok) throw new Error('API 回應異常');
                     const data = await response.json();
                     this.highestScore = data.highest_score || 0;
                     this.highestScoreElement.textContent = this.highestScore;
                     console.log(`歷史最高分: ${this.highestScore}`);
                 } catch (error) {
-                    console.error('載入歷史最高分失敗:', error);
+                    console.warn('載入歷史最高分失敗（獨立部署時為正常）:', error);
                     this.highestScore = 0;
+                    if (this.highestScoreElement) this.highestScoreElement.textContent = '0';
                 }
             }
             
@@ -987,16 +997,21 @@
             if (event) {
                 event.preventDefault();
             }
-            // Share版本：返回主介面
             const currentPath = window.location.pathname;
-            if (currentPath.includes('/share/')) {
+            if (currentPath.includes('/PCskills/')) {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '../index.html';
+                }
+            } else if (currentPath.includes('/share/')) {
                 window.location.href = '/share';
             } else {
                 // 如果不是Share版本，使用瀏覽器後退
                 if (window.history.length > 1) {
                     window.history.back();
                 } else {
-                    window.location.href = '/';
+                    window.location.href = '../index.html';
                 }
             }
         }

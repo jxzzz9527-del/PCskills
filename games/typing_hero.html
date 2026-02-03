@@ -70,25 +70,51 @@
         
         // Share版本：返回主介面
         function goBack() {
-            const currentPath = window.location.pathname;
-            if (currentPath.includes('/share/')) {
-                window.location.href = '/share';
-            } else {
-                // 如果不是Share版本，使用原有邏輯
-                const classId = getUrlParameter('class_id') || '301';
-                const role = '{{ request.session.get("role", "student") }}';
-                
-                if (role === 'teacher') {
-                    window.location.href = `/teacher/classroom?class_id=${classId}`;
+            const path = window.location.pathname;
+            const classId = getUrlParameter('class_id') || '301';
+            if (path.includes('/PCskills/')) {
+                if (window.history.length > 1) {
+                    window.history.back();
                 } else {
-                    window.location.href = `/student/classroom?class_id=${classId}`;
+                    window.location.href = '../index.html';
+                }
+            } else if (path.includes('/share/')) {
+                window.location.href = '/share';
+            } else if (path.includes('/teacher/')) {
+                window.location.href = '/teacher/classroom?class_id=' + classId;
+            } else if (path.includes('/student/')) {
+                window.location.href = '/student/classroom?class_id=' + classId;
+            } else {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '../index.html';
                 }
             }
         }
         
         // 監聽iframe載入完成
         document.getElementById('gameFrame').addEventListener('load', function() {
-            // 遊戲載入完成
+            // Share版本：在iframe載入後，隱藏查看排行榜按鈕
+            const hideShareElements = () => {
+                try {
+                    const iframe = document.getElementById('gameFrame');
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const viewLeaderboardBtn = iframeDoc.getElementById('viewLeaderboardBtn');
+                    if (viewLeaderboardBtn) {
+                        viewLeaderboardBtn.style.display = 'none';
+                    }
+                    const backToMenuBtn = iframeDoc.getElementById('backToMenuBtn');
+                    if (backToMenuBtn) {
+                        backToMenuBtn.textContent = '返回';
+                    }
+                } catch (e) {
+                    // 跨域限制，無法直接操作iframe內容
+                }
+            };
+            hideShareElements();
+            const checkInterval = setInterval(hideShareElements, 500);
+            setTimeout(() => clearInterval(checkInterval), 60000);
         });
         
         // 處理iframe內部的返回請求
@@ -97,9 +123,27 @@
             
             if (event.data === 'goBack') {
                 goBack();
+            } else if (event.data === 'viewLeaderboard') {
+                // Share版本：忽略查看排行榜請求
             } else if (event.data && event.data.type === 'gameEnd') {
-                console.log('收到遊戲結束事件:', event.data);
-                // Share版本：分數計算完成，不提交到排行榜
+                // Share版本：遊戲結束後再次隱藏查看排行榜按鈕（結算畫面此時才顯示）
+                const hideElementsAfterGameEnd = () => {
+                    try {
+                        const iframe = document.getElementById('gameFrame');
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const viewLeaderboardBtn = iframeDoc.getElementById('viewLeaderboardBtn');
+                        if (viewLeaderboardBtn) {
+                            viewLeaderboardBtn.style.display = 'none';
+                        }
+                        const backToMenuBtn = iframeDoc.getElementById('backToMenuBtn');
+                        if (backToMenuBtn) {
+                            backToMenuBtn.textContent = '返回';
+                        }
+                    } catch (e) {}
+                };
+                hideElementsAfterGameEnd();
+                setTimeout(hideElementsAfterGameEnd, 1000);
+                setTimeout(hideElementsAfterGameEnd, 2000);
             }
         });
         

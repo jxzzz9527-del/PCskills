@@ -1175,23 +1175,35 @@
             const currentPath = window.location.pathname;
             console.log('返回教室，當前路徑:', currentPath);
             
-            if (currentPath.includes('/teacher/')) {
-                // 教師端：直接返回教師教室
-                window.location.href = '/teacher/classroom';
-            } else {
-                // 學生端：使用瀏覽器後退功能
+            if (currentPath.includes('/PCskills/')) {
                 if (window.history.length > 1) {
                     window.history.back();
                 } else {
-                    // 如果沒有歷史記錄，導向學生遊戲頁面
+                    window.location.href = '../index.html';
+                }
+            } else if (currentPath.includes('/teacher/')) {
+                window.location.href = '/teacher/classroom';
+            } else if (currentPath.includes('/share/')) {
+                window.location.href = '/share';
+            } else if (currentPath.includes('/student/')) {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
                     window.location.href = '/student/games';
+                }
+            } else {
+                // 獨立部署：導向首頁
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '../index.html';
                 }
             }
         }
 
         // Share版本：返回主介面
         function goBackToShare() {
-            window.location.href = '/share';
+            window.location.href = window.location.pathname.includes('/PCskills/') ? '../index.html' : '/share';
         }
     </script>
 </body>
